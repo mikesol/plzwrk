@@ -25,36 +25,27 @@ source-repository head
   type: git
   location: https://github.com/githubuser/plzwrk
 
-executable haskell-api-spec-build-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_plzwrk
-  hs-source-dirs:
-      app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , plzwrk
-    , text
-  default-language: Haskell2010
-
-
 library
   exposed-modules:
-      DomBase
-    , DomWAI
-    , WebAPI
+      Web.Framework.Plzwrk
+    , Web.Framework.Plzwrk.MockJSVal
   other-modules:
       Paths_plzwrk
+    , Web.Framework.Plzwrk.Base
+    , Web.Framework.Plzwrk.Browserful
+    , Web.Framework.Plzwrk.Domify
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
-    , asterius-prelude
     , bytestring
     , containers
+    , dom-events
+    , mtl
+    , random
     , text
     , transformers
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite plzwrk-test
@@ -67,6 +58,9 @@ test-suite plzwrk-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , hspec
+    , mtl
     , plzwrk
     , text
+    , unordered-containers
   default-language: Haskell2010

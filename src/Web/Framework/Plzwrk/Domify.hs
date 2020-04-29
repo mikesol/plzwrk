@@ -3,6 +3,7 @@
 module Web.Framework.Plzwrk.Domify
   ( reconcile
   , plzwrk
+  , plzwrk'
   )
 where
 
@@ -358,4 +359,14 @@ plzwrk domF state env nodeId = do
       env
     )
     parentNode
+  writeIORef refToOldDom newDom
+
+plzwrk'
+  :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
+plzwrk' domF state env = do
+  refToOldDom <- newIORef Nothing
+  parentNode  <- (getBody env)
+  newDom      <- runReaderT
+    (reconcile refToOldDom domF parentNode Nothing (Just $ hydrate state domF))
+    env
   writeIORef refToOldDom newDom

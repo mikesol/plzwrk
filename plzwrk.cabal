@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Web.Framework.Plzwrk
+    , Web.Framework.Plzwrk.Asterius
     , Web.Framework.Plzwrk.MockJSVal
   other-modules:
       Paths_plzwrk
@@ -46,6 +47,18 @@ library
     , text
     , transformers
     , unordered-containers
+  default-language: Haskell2010
+
+executable kitchen-sink-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_plzwrk
+  hs-source-dirs:
+      kitchen-sink
+  ghc-options: -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , plzwrk
   default-language: Haskell2010
 
 test-suite plzwrk-test

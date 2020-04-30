@@ -6,9 +6,10 @@ module Web.Framework.Plzwrk.Base
   , div'_
   , txt
   , txt'
-  , ul
-  , li
-  , ol
+  , input
+  , input'
+  , input_
+  , input'_
   , button
   , button'
   , button_
@@ -27,7 +28,6 @@ module Web.Framework.Plzwrk.Base
   )
 where
 
-import           Data.DOM.Event
 import           Data.HashMap.Strict
 import           Data.Set                hiding ( empty
                                                 , toList
@@ -44,20 +44,17 @@ cssToStyle css =
     <> (intercalate (pack ";") $ fmap (\(x, y) -> x <> ":" <> y) (toList css))
     <> (pack "}")
 
-type MightyMouse opq
-  = (MouseEvent (IO Bool) opq (IO [opq]) (IO ()) (IO ()) (IO ()))
-
 -- data classes
 
 data Attributes s opq = MkAttributes
   { _css     :: Maybe (HashMap Text Text)
   , _class   :: Maybe (Set Text)
   , _simple  :: HashMap Text Text
-  , _onClick :: Maybe (MightyMouse opq -> s)
+  , _handlers :: HashMap Text (opq -> s -> IO s)
   }
 
-dats = (\_ -> MkAttributes Nothing Nothing empty Nothing)
-dats' = MkAttributes Nothing Nothing empty Nothing
+dats = (\_ -> MkAttributes Nothing Nothing empty empty)
+dats' = MkAttributes Nothing Nothing empty empty
 
 
 instance Show (Attributes s opq) where
@@ -84,7 +81,7 @@ type Sig s opq = (s -> Attributes s opq) -> [s -> Node s opq] -> Node s opq
 type AFSig_ s opq = [s -> Node s opq] -> (s -> Node s opq)
 type Sig_ s opq = [s -> Node s opq] -> Node s opq
 
-
+-- div
 div :: AFSig s opq
 div x y = (\_ -> Element "div" x y)
 
@@ -97,6 +94,7 @@ div_ x = (\_ -> Element "div" dats x)
 div'_ :: Sig_ s opq
 div'_ x = Element "div" dats x
 
+-- button
 button :: AFSig s opq
 button x y = (\_ -> Element "button" x y)
 
@@ -109,6 +107,20 @@ button_ x = (\_ -> Element "button" dats x)
 button'_ :: Sig_ s opq
 button'_ x = Element "button" dats x
 
+-- input
+input :: AFSig s opq
+input x y = (\_ -> Element "input" x y)
+
+input' :: Sig s opq
+input' = Element "input"
+
+input_ :: AFSig_ s opq
+input_ x = (\_ -> Element "input" dats x)
+
+input'_ :: Sig_ s opq
+input'_ x = Element "input" dats x
+
+-- p
 p :: AFSig s opq
 p x y = (\_ -> Element "p" x y)
 
@@ -120,15 +132,6 @@ p_ x = (\_ -> Element "p" dats x)
 
 p'_ :: Sig_ s opq
 p'_ x = Element "p" dats x
-
-ul :: (s -> Attributes s opq) -> [s -> Node s opq] -> Node s opq
-ul = Element "ul"
-
-ol :: (s -> Attributes s opq) -> [s -> Node s opq] -> Node s opq
-ol = Element "ol"
-
-li :: (s -> Attributes s opq) -> [s -> Node s opq] -> Node s opq
-li = Element "li"
 
 txt :: Text -> (s -> Node s opq)
 txt t = (\_ -> TextNode t)

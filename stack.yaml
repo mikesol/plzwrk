@@ -41,8 +41,8 @@ packages:
 #
 # extra-deps: []
 extra-deps:
+- aeson-1.4.7.1
 - binary-0.8.8.0
-- dom-events-0.0.0.4
 - bytestring-0.10.8.1
 - containers-0.6.2.1
 - text-1.2.4.0

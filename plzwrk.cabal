@@ -25,6 +25,16 @@ source-repository head
   type: git
   location: https://github.com/githubuser/plzwrk
 
+Flag Debug
+  Description: Enable debug support
+  Default:     False
+  Manual:      True
+
+flag plzwrk-enable-asterius
+  Description: Enable asterius
+  Default:     False
+  Manual:      True
+
 library
   exposed-modules:
       Web.Framework.Plzwrk
@@ -39,15 +49,20 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , aeson
     , bytestring
     , containers
-    , dom-events
     , mtl
     , random
     , text
     , transformers
     , unordered-containers
   default-language: Haskell2010
+  if flag(plzwrk-enable-asterius)
+    cpp-options:
+      -DPLZWRK_ENABLE_ASTERIUS
+    build-depends:
+      asterius-prelude
 
 executable kitchen-sink-exe
   main-is: Main.hs
@@ -59,7 +74,12 @@ executable kitchen-sink-exe
   build-depends:
       base >=4.7 && <5
     , plzwrk
+    , text
+    , unordered-containers
   default-language: Haskell2010
+  if flag(plzwrk-enable-asterius)
+    cpp-options:
+      -DPLZWRK_ENABLE_ASTERIUS
 
 test-suite plzwrk-test
   type: exitcode-stdio-1.0

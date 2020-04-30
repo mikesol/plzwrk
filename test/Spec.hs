@@ -28,15 +28,19 @@ main = hspec $ do
           (\x y -> div'_
               [ p_ (take y $ repeat (txt (concat [x, pack $ show y])))
               , button
-                (pure dats' { _simple  = singleton "id" "incr"
-                            , _onClick = Just (\_ -> MyState x (y + 1))
-                            }
+                (pure dats'
+                  { _simple   = singleton "id" "incr"
+                  , _handlers = singleton "click"
+                                          (\_ s -> pure $ s { _ctr = y + 1 })
+                  }
                 )
                 [txt "Increase counter"]
               , button
-                (pure dats' { _simple  = singleton "id" "decr"
-                            , _onClick = Just (\_ -> MyState x (y - 1))
-                            }
+                (pure dats'
+                  { _simple   = singleton "id" "decr"
+                  , _handlers = singleton "click"
+                                          (\_ s -> pure $ s { _ctr = y - 1 })
+                  }
                 )
                 [txt "Decrease counter"]
               ]
@@ -47,7 +51,7 @@ main = hspec $ do
     it "Creates the correct DOM from the state" $ do
       rf          <- defaultInternalBrowser
       mock        <- makeMockBrowserWithContext rf
-      refToOldDom <- newIORef Nothing
+      refToOldDom <- newIORef (OldStuff state Nothing)
       parentNode  <- getBody mock
       newDom      <- runReaderT
         (reconcile refToOldDom
@@ -57,7 +61,7 @@ main = hspec $ do
                    (Just $ hydrate state domF)
         )
         mock
-      writeIORef refToOldDom newDom
+      writeIORef refToOldDom (OldStuff state newDom)
       childrenLevel0 <- (getChildren mock) parentNode
       length childrenLevel0 `shouldBe` 1
       divtag <- (getTag mock) (head childrenLevel0)

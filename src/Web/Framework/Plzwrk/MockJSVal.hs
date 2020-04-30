@@ -8,6 +8,7 @@ module Web.Framework.Plzwrk.MockJSVal
   )
 where
 
+import           Data.Aeson                     ( FromJSON )
 import           Data.HashMap.Strict     hiding ( foldr
                                                 , null
                                                 )
@@ -26,7 +27,6 @@ import           Prelude                 hiding ( lookup )
 import           System.Random
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
-import           Data.DOM.Event
 
 data LogEvent = ListenerReceived Text Int
     | AddedAsListenerTo Int
@@ -248,18 +248,20 @@ _freeCallback _                        = error "Can only free function"
 
 dummyClick :: MockJSVal -> IO ()
 -- todo give real number
+
 dummyClick (MockJSFunction _ f _) = f $ MockMouseEvent (-1)
 
 
 _click :: MockJSVal -> IO ()
 _click (MockJSElement _ _ (MockAttributes _ evts) _ _) = do
-  let oc = lookup "onclick" evts
+  let oc = lookup "click" evts
   maybe (pure ()) (\x -> dummyClick x) oc
 
 _click _ = error "Can only free function"
 
 
 --------------
+
 
 data MockBrowserInternal = MockBrowserInternal
   { unBrowser :: HashMap Int MockJSVal
@@ -313,12 +315,35 @@ _'createElement env tg = do
   wrt env i elt
   return i
 
+_'consoleLog :: IORef MockBrowserInternal -> Text -> IO ()
+_'consoleLog _ txt = print txt
+
 _'createTextNode :: IORef MockBrowserInternal -> Text -> IO Int
 _'createTextNode env txt = do
   i <- incr env
   let elt = MockJSTextNode i txt [CreatedTextNode i]
   wrt env i elt
   return i
+
+_'getString :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Text)
+_'getString env _ _ = pure Nothing -- not implemented yet
+
+_'getBool :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Bool)
+_'getBool env _ _ = pure Nothing -- not implemented yet
+
+_'getInt :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Int)
+_'getInt env _ _ = pure Nothing -- not implemented yet
+
+_'getDouble :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Double)
+_'getDouble env _ _ = pure Nothing -- not implemented yet
+
+_'getOpaque :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Int)
+_'getOpaque env _ _ = pure Nothing -- not implemented yet
+
+
+_'invokeOn :: IORef MockBrowserInternal -> Int -> Text -> IO ()
+_'invokeOn env _ _ = pure () -- not implemented yet
+
 
 _'getTag :: IORef MockBrowserInternal -> Int -> IO Text
 _'getTag env elt = do
@@ -418,15 +443,22 @@ makeMockBrowserWithContext :: IORef MockBrowserInternal -> IO (Browserful Int)
 makeMockBrowserWithContext r = return Browserful
   { addEventListener    = _'addEventListener r
   , appendChild         = _'appendChild r
+  , consoleLog          = _'consoleLog r
   , click               = _'click r
   , createElement       = _'createElement r
   , createTextNode      = _'createTextNode r
   , freeCallback        = _'freeCallback r
   , getBody             = _'getBody r
+  , getBool             = _'getBool r
   , getChildren         = _'getChildren r
+  , getDouble           = _'getDouble r
   , getElementById      = _'getElementById r
+  , getInt              = _'getInt r
+  , getOpaque           = _'getOpaque r
+  , getString           = _'getString r
   , getTag              = _'getTag r
   , insertBefore        = _'insertBefore r
+  , invokeOn            = _'invokeOn r
   , makeHaskellCallback = _'makeHaskellCallback r
   , removeChild         = _'removeChild r
   , removeEventListener = _'removeEventListener r

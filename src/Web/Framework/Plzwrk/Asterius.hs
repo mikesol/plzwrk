@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Framework.Plzwrk.Asterius (asteriusBrowser) where
 
+import Asterius.Aeson
 import           Asterius.ByteString
 import           Asterius.Types
 import qualified Data.ByteString        as BS
@@ -11,26 +12,33 @@ import           Data.ByteString.Unsafe
 import           Data.Coerce
 import           Data.Text
 import           Foreign.Ptr
-import           Typeclasses
+import           Web.Framework.Plzwrk.Browserful
 
 asteriusBrowser :: IO (Browserful JSVal)
 asteriusBrowser = return Browserful
-  { addEventListener    = _addEventListener r
-  , appendChild         = _appendChild r
-  , click               = _click r
-  , createElement       = _createElement r
-  , createTextNode      = _createTextNode r
-  , freeCallback        = _freeCallback r
-  , getBody             = _getBody r
-  , getChildren         = _getChildren r
-  , getElementById      = _getElementById r
-  , getTag              = _getTag r
-  , insertBefore        = _insertBefore r
-  , makeHaskellCallback = _makeHaskellCallback r
-  , removeChild         = _removeChild r
-  , removeEventListener = _removeEventListener r
-  , setAttribute        = _setAttribute r
-  , textContent         = _textContent r
+  { addEventListener    = _addEventListener
+  , appendChild         = _appendChild
+  , click               = _click
+  , consoleLog          = _consoleLog
+  , createElement       = _createElement
+  , createTextNode      = _createTextNode
+  , freeCallback        = _freeCallback
+  , getBody             = _getBody
+  , getBool             = _getBool
+  , getDouble           = _getDouble
+  , getChildren         = _getChildren
+  , getElementById      = _getElementById
+  , getInt              = _getInt
+  , getOpaque           = _getOpaque
+  , getString           = _getString
+  , getTag              = _getTag
+  , insertBefore        = _insertBefore
+  , invokeOn            = _invokeOn
+  , makeHaskellCallback = _makeHaskellCallback
+  , removeChild         = _removeChild
+  , removeEventListener = _removeEventListener
+  , setAttribute        = _setAttribute
+  , textContent         = _textContent
   }
 
 toJSString_ = toJSString . unpack
@@ -40,13 +48,53 @@ _createElement :: Text -> IO JSVal
 _createElement = js_createElement . toJSString_
 
 _getTag :: JSVal -> IO Text
-_getTag =  fromJSString_ . js_getTag
+_getTag x =  do
+  v <- js_getTag x
+  return $ fromJSString_ v
 
 _textContent :: JSVal -> IO Text
-_textContent =  fromJSString_ . js_textContent
+_textContent x =  do
+  v <- js_textContent x
+  return $ fromJSString_ v
 
 _setAttribute :: JSVal -> Text -> Text -> IO ()
 _setAttribute e k v = js_setAttribute e (toJSString_ k) (toJSString_ v)
+
+_getOpaque :: JSVal -> Text -> IO (Maybe JSVal)
+_getOpaque n k = do
+  isUndef <- js_null_or_undef n
+  if isUndef then pure Nothing else (do
+      v <- _js_getOpaque n (toJSString_ k)
+      isUndef' <- js_null_or_undef v
+      if isUndef' then pure Nothing else pure (Just v)
+    )
+
+_getString :: JSVal -> Text -> IO (Maybe Text)
+_getString n k = _getGeneric (\v -> (jsonFromJSVal v) :: Either String Text) n k
+
+_getBool :: JSVal -> Text -> IO (Maybe Bool)
+_getBool n k = _getGeneric (\v -> (jsonFromJSVal v) :: Either String Bool) n k
+
+_getInt :: JSVal -> Text -> IO (Maybe Int)
+_getInt n k = _getGeneric (\v -> (jsonFromJSVal v) :: Either String Int) n k
+
+_getDouble :: JSVal -> Text -> IO (Maybe Double)
+_getDouble n k = _getGeneric (\v -> (jsonFromJSVal v) :: Either String Double) n k
+
+_getGeneric :: (JSVal -> Either String a) -> JSVal -> Text -> IO (Maybe a)
+_getGeneric f n k = do
+  isUndef <- js_null_or_undef n
+  if isUndef then pure Nothing else (do
+    v <- _js_getOpaque n (toJSString_ k)
+    isUndef' <- js_null_or_undef v
+    if isUndef' then pure Nothing else (
+        let q = f v in
+        either (\_ -> pure Nothing) (pure . Just) q)
+      )
+  
+
+_consoleLog :: Text -> IO ()
+_consoleLog t = _js_consoleLog (toJSString_ t)
 
 _addEventListener :: JSVal -> Text -> JSVal -> IO ()
 _addEventListener target event callback =
@@ -59,8 +107,15 @@ _removeEventListener target event callback =
 _createTextNode :: Text -> IO JSVal
 _createTextNode = js_createTextNode . toJSString_
 
-_getElementById :: Text -> IO JSVal
-_getElementById k = js_getElementById (toJSString_ k)
+_invokeOn :: JSVal -> Text -> IO ()
+_invokeOn e s = _js_invokeOn e (toJSString_ s)
+
+
+_getElementById :: Text -> IO (Maybe JSVal)
+_getElementById k = do
+  v <- js_getElementById (toJSString_ k)
+  u <- js_null_or_undef v
+  return $ if u then Nothing else Just v
 
 getJSVal :: JSFunction -> JSVal
 getJSVal (JSFunction x) = x
@@ -72,6 +127,15 @@ _makeHaskellCallback a = do
 
 _freeCallback :: JSVal -> IO ()
 _freeCallback v = freeHaskellCallback (JSFunction v)
+
+foreign import javascript "console.log($1)"
+  _js_consoleLog :: JSString -> IO ()
+
+foreign import javascript "$1[$2]()"
+  _js_invokeOn :: JSVal -> JSString -> IO ()
+
+foreign import javascript "$1[$2]"
+  _js_getOpaque :: JSVal -> JSString -> IO JSVal
 
 foreign import javascript "document.createElement($1)"
   js_createElement :: JSString -> IO JSVal
@@ -91,8 +155,19 @@ foreign import javascript "$1.setAttribute($2,$3)"
 foreign import javascript "$1.appendChild($2)"
   _appendChild :: JSVal -> JSVal -> IO ()
 
+foreign import javascript "($1 !== null) && ($1 !== undefined)"
+  js_null_or_undef :: JSVal -> IO Bool
+
 foreign import javascript "$1.childNodes"
-  _getChildren :: JSVal -> IO ()
+  _js_getChildren :: JSVal -> IO JSArray
+
+_getChildren :: JSVal -> IO [JSVal]
+_getChildren x = do
+  v <- _js_getChildren x
+  return $ fromJSArray v
+
+foreign import javascript "$1.click()"
+  _click :: JSVal -> IO ()
 
 foreign import javascript "$1.insertBefore($2,$3)"
   _insertBefore :: JSVal -> JSVal -> JSVal -> IO ()

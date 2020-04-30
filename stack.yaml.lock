@@ -5,19 +5,19 @@
 
 packages:
 - completed:
+    hackage: aeson-1.4.7.1@sha256:6d8d2fd959b7122a1df9389cf4eca30420a053d67289f92cdc0dbc0dab3530ba,7098
+    pantry-tree:
+      size: 40133
+      sha256: caa9306e519c601ab0170d113daa03c1163db53e5466be2968bbd61a771bebcb
+  original:
+    hackage: aeson-1.4.7.1
+- completed:
     hackage: binary-0.8.8.0@sha256:e9387a7ef2b34c6a23b09664c306e37cc01ae2cb4e4511a1c96ffb14008c24b0,6262
     pantry-tree:
       size: 1976
       sha256: 271cd1e75af293fc25a489d860f094dc635a4ed8b56aa5b343c58f4637736ca3
   original:
     hackage: binary-0.8.8.0
-- completed:
-    hackage: dom-events-0.0.0.4@sha256:7859dbde6add27a7c26c46825ac398968f12b5f1ecacf64e1df6dfd4f5f1f53f,1435
-    pantry-tree:
-      size: 369
-      sha256: 07bd2fc060e16648696d86ede8a90545107b1f4066cbd4fb421bb9072e70f529
-  original:
-    hackage: dom-events-0.0.0.4
 - completed:
     hackage: bytestring-0.10.8.1@sha256:ba427593b1c6a427aeb69622a0802ad2abb4ee3d4f586e1693036d3f0fcfe391,8921
     pantry-tree:

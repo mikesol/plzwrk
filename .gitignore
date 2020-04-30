@@ -3,3 +3,5 @@
 .ghc.environment.*
 .stack-work/
 dist-newstyle/
+express-test/node_modules
+express-test/public

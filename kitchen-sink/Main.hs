@@ -34,7 +34,10 @@ main = do
                                 "input"
                                 (\e s -> do
                                   opq <- (getOpaque browser) e "target"
-                                  v   <- (getString browser) e "value"
+                                  v   <- maybe
+                                    (pure Nothing)
+                                    (\y -> (getString browser) y "value")
+                                    opq
                                   return $ maybe s (\q -> s { _ipt = q }) v
                                 )
                 }
@@ -76,6 +79,7 @@ main = do
         <*> _ctr
   let state = MyState "Meeshkan" 0 ""
   plzwrk' domF state browser
+
 # else
 main :: IO ()
 main = print "If you're using ahc, please set -DPLZWRK_ENABLE_ASTERIUS as a flag to run this executable."

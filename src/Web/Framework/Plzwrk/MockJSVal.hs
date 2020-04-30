@@ -318,6 +318,10 @@ _'createElement env tg = do
 _'consoleLog :: IORef MockBrowserInternal -> Text -> IO ()
 _'consoleLog _ txt = print txt
 
+_'consoleLog' :: IORef MockBrowserInternal -> Int -> IO ()
+_'consoleLog' _ v = print (show v)
+
+
 _'createTextNode :: IORef MockBrowserInternal -> Text -> IO Int
 _'createTextNode env txt = do
   i <- incr env
@@ -444,6 +448,7 @@ makeMockBrowserWithContext r = return Browserful
   { addEventListener    = _'addEventListener r
   , appendChild         = _'appendChild r
   , consoleLog          = _'consoleLog r
+  , consoleLog'         = _'consoleLog' r
   , click               = _'click r
   , createElement       = _'createElement r
   , createTextNode      = _'createTextNode r

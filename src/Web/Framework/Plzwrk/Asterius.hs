@@ -20,6 +20,7 @@ asteriusBrowser = return Browserful
   , appendChild         = _appendChild
   , click               = _click
   , consoleLog          = _consoleLog
+  , consoleLog'         = _consoleLog'
   , createElement       = _createElement
   , createTextNode      = _createTextNode
   , freeCallback        = _freeCallback
@@ -96,6 +97,10 @@ _getGeneric f n k = do
 _consoleLog :: Text -> IO ()
 _consoleLog t = _js_consoleLog (toJSString_ t)
 
+_consoleLog' :: JSVal -> IO ()
+_consoleLog' v = _js_consoleLog' v
+
+
 _addEventListener :: JSVal -> Text -> JSVal -> IO ()
 _addEventListener target event callback =
   js_addEventListener target (toJSString_ event) callback
@@ -131,6 +136,10 @@ _freeCallback v = freeHaskellCallback (JSFunction v)
 foreign import javascript "console.log($1)"
   _js_consoleLog :: JSString -> IO ()
 
+foreign import javascript "console.log($1)"
+  _js_consoleLog' :: JSVal -> IO ()
+
+
 foreign import javascript "$1[$2]()"
   _js_invokeOn :: JSVal -> JSString -> IO ()
 
@@ -155,7 +164,7 @@ foreign import javascript "$1.setAttribute($2,$3)"
 foreign import javascript "$1.appendChild($2)"
   _appendChild :: JSVal -> JSVal -> IO ()
 
-foreign import javascript "($1 !== null) && ($1 !== undefined)"
+foreign import javascript "($1 == null) || ($1 == undefined)"
   js_null_or_undef :: JSVal -> IO Bool
 
 foreign import javascript "$1.childNodes"

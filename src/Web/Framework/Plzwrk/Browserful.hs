@@ -9,6 +9,7 @@ data Browserful jsval = Browserful
   { addEventListener    :: jsval -> Text -> jsval -> IO ()
   , appendChild         :: jsval -> jsval -> IO ()
   , consoleLog          :: Text -> IO ()
+  , consoleLog'         :: jsval -> IO ()
   , click               :: jsval -> IO ()
   , createElement       :: Text -> IO jsval
   , createTextNode      :: Text -> IO jsval

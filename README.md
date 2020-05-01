@@ -1,6 +1,6 @@
 # plzwrk
 
-Yet another Haskell front-end framework.
+A Haskell front-end framework.
 
 ## Hello world
 

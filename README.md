@@ -15,13 +15,13 @@ main = do
   plzwrk'_ (p__ "Hello world!") browser
 ```
 
-See it live.
+See it [live](https://plzwrk-hello-world.surge.sh).
 
 ## Kitchen sink
 
 Check out the code [here](./kitchen-sink/Main.hs).
 
-See it live.
+See it [live](https://plzwrk-kitchen-sink.surge.sh).
 
 ## Installation
 
@@ -43,7 +43,7 @@ asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --
 
 ## Documentation
 
-The main documentation for `plzwrk` is on hackage. The four importable modules are:
+The main documentation for `plzwrk` is on [hackage](https://https://hackage.haskell.org/package/plzwrk). The four importable modules are:
 
 - `Web.Frameworks.Plzwrk` for the basic functions
 - `Web.Frameworks.Plzwrk.Tag` for helper functions to make takes like `input` or `br`.
@@ -80,7 +80,7 @@ eh :: opq -> Int -> IO Int
 eh _ i = pure $ i + 1
 ```
 
-To handle events (ie extract values from input events, etc) you can use one of the functions exported by `Web.Framework.Plzwrk`. Please see the hackage documentation for more information.
+To handle events (ie extract values from input events, etc) you can use one of the functions exported by `Web.Framework.Plzwrk`. Please see the [hackage documentation](https://hackage.haskell.org/package/plzwrk) for more information.
 
 > If you are using the Asterius backend, callback functions are still quite fragile and subject to breakage. The less third-party libraries you use in them, the better. For example, avoid using `Data.Text` and `aeson` if possible.
 

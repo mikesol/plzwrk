@@ -27,11 +27,6 @@ source-repository head
   type: git
   location: https://github.com/meeshkan/plzwrk
 
-Flag Debug
-  Description: Enable debug support
-  Default:     False
-  Manual:      True
-
 flag plzwrk-enable-asterius
   Description: Enable asterius
   Default:     False

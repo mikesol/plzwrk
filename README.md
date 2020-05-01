@@ -43,7 +43,7 @@ asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --
 
 ## Documentation
 
-The main documentation for `plzwrk` is on [hackage](https://https://hackage.haskell.org/package/plzwrk). The four importable modules are:
+The main documentation for `plzwrk` is on [hackage](https://hackage.haskell.org/package/plzwrk). The four importable modules are:
 
 - `Web.Frameworks.Plzwrk` for the basic functions
 - `Web.Frameworks.Plzwrk.Tag` for helper functions to make takes like `input` or `br`.

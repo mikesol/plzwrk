@@ -29,6 +29,7 @@ asteriusBrowser = return Browserful
   , getDouble           = _getDouble
   , getChildren         = _getChildren
   , getElementById      = _getElementById
+  , getHead             = _getHead
   , getInt              = _getInt
   , getOpaque           = _getOpaque
   , getString           = _getString
@@ -36,6 +37,7 @@ asteriusBrowser = return Browserful
   , insertBefore        = _insertBefore
   , invokeOn            = _invokeOn
   , makeHaskellCallback = _makeHaskellCallback
+  , random01            = _random01
   , removeChild         = _removeChild
   , removeEventListener = _removeEventListener
   , setAttribute        = _setAttribute
@@ -92,7 +94,6 @@ _getGeneric f n k = do
         let q = f v in
         either (\_ -> pure Nothing) (pure . Just) q)
       )
-  
 
 _consoleLog :: Text -> IO ()
 _consoleLog t = _js_consoleLog (toJSString_ t)
@@ -149,8 +150,14 @@ foreign import javascript "$1[$2]"
 foreign import javascript "document.createElement($1)"
   js_createElement :: JSString -> IO JSVal
 
+foreign import javascript "Math.random()"
+  _random01 :: IO Double
+
 foreign import javascript "document.body"
   _getBody :: IO JSVal
+
+foreign import javascript "document.head"
+  _getHead :: IO JSVal
 
 foreign import javascript "$1.tagName"
   js_getTag :: JSVal -> IO JSString

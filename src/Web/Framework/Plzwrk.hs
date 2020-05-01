@@ -1,23 +1,5 @@
 module Web.Framework.Plzwrk
-  ( div
-  , div'
-  , div_
-  , div'_
-  , button
-  , button'
-  , button_
-  , button'_
-  , input
-  , input'
-  , input_
-  , input'_
-  , p
-  , p'
-  , p_
-  , p'_
-  , txt
-  , txt'
-  , hydrate
+  ( hydrate
   , dats
   , dats'
   , Node(..)
@@ -28,6 +10,7 @@ module Web.Framework.Plzwrk
   , reconcile
   , plzwrk
   , plzwrk'
+  , plzwrk'_
   , OldStuff(..)
   )
 where

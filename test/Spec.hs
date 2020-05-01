@@ -15,6 +15,7 @@ import           Test.Hspec
 import           Web.Framework.Plzwrk
 import           Web.Framework.Plzwrk.MockJSVal
 import           Data.HashMap.Strict
+import           Web.Framework.Plzwrk.Tag(p_, txt, button, div'_)
 
 data MyState = MyState
   { _name :: Text

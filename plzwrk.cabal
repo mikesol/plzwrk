@@ -40,6 +40,7 @@ library
       Web.Framework.Plzwrk
     , Web.Framework.Plzwrk.Asterius
     , Web.Framework.Plzwrk.MockJSVal
+    , Web.Framework.Plzwrk.Tag
   other-modules:
       Paths_plzwrk
     , Web.Framework.Plzwrk.Base
@@ -67,15 +68,34 @@ library
 executable kitchen-sink-exe
   main-is: Main.hs
   other-modules:
-      Paths_plzwrk
+      Nouns
+    , Paths_plzwrk
   hs-source-dirs:
       kitchen-sink
   ghc-options: -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , plzwrk
+    , containers
+    , neat-interpolation
     , text
     , unordered-containers
+  default-language: Haskell2010
+  if flag(plzwrk-enable-asterius)
+    cpp-options:
+      -DPLZWRK_ENABLE_ASTERIUS
+
+executable hello-world-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_plzwrk
+  hs-source-dirs:
+      hello-world
+  ghc-options: -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , plzwrk
+    , text
   default-language: Haskell2010
   if flag(plzwrk-enable-asterius)
     cpp-options:

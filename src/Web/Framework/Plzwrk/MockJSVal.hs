@@ -315,6 +315,9 @@ _'createElement env tg = do
   wrt env i elt
   return i
 
+_'random01 :: IORef MockBrowserInternal -> IO Double
+_'random01 _ = pure 0.5
+
 _'consoleLog :: IORef MockBrowserInternal -> Text -> IO ()
 _'consoleLog _ txt = print txt
 
@@ -387,6 +390,9 @@ _'getBody ref = do
   pt <- maybe (error "No body.") (\x -> pure $ _ptr x) $ lookup 0 browser
   return pt
 
+_'getHead :: IORef MockBrowserInternal -> IO Int
+_'getHead ref = pure (-1) -- need to implement in mock?
+
 _getElementByIdInternal :: MockJSVal -> Text -> [Int]
 _getElementByIdInternal jsv@(MockJSElement _ _ _ ch _) txt = if (idEq txt jsv)
   then [_ptr jsv]
@@ -458,6 +464,7 @@ makeMockBrowserWithContext r = return Browserful
   , getChildren         = _'getChildren r
   , getDouble           = _'getDouble r
   , getElementById      = _'getElementById r
+  , getHead             = _'getHead r
   , getInt              = _'getInt r
   , getOpaque           = _'getOpaque r
   , getString           = _'getString r
@@ -465,6 +472,7 @@ makeMockBrowserWithContext r = return Browserful
   , insertBefore        = _'insertBefore r
   , invokeOn            = _'invokeOn r
   , makeHaskellCallback = _'makeHaskellCallback r
+  , random01            = _'random01 r
   , removeChild         = _'removeChild r
   , removeEventListener = _'removeEventListener r
   , setAttribute        = _'setAttribute r

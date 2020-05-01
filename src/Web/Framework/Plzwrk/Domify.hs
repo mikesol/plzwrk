@@ -4,6 +4,7 @@ module Web.Framework.Plzwrk.Domify
   ( reconcile
   , plzwrk
   , plzwrk'
+  , plzwrk'_
   , OldStuff(..)
   )
 where
@@ -17,6 +18,7 @@ import qualified Data.HashMap.Strict           as HM
 import           Data.IORef
 import           Data.Maybe                     ( catMaybes )
 import           Data.Set                hiding ( take )
+import qualified Data.Set                      as S
 import           Data.Text               hiding ( length
                                                 , take
                                                 )
@@ -25,10 +27,10 @@ import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 
 data DomifiedAttributes jsval = MkDomifiedAttributes
-  { _d_css     :: Maybe (HM.HashMap Text Text)
-  , _d_class   :: Maybe (Set Text)
-  , _d_simple  :: HM.HashMap Text Text
-  , _d_handlers :: HM.HashMap Text jsval
+  { _d_style     :: HM.HashMap Text Text
+  , _d_class     :: Set Text
+  , _d_simple    :: HM.HashMap Text Text
+  , _d_handlers  :: HM.HashMap Text jsval
   }
 
 data DomifiedNode jsval = DomifiedElement
@@ -61,9 +63,9 @@ freeFunctions _ = pure ()
 
 nodesEq
   :: Text -> Text -> DomifiedAttributes jsval -> Attributes state jsval -> Bool
-nodesEq t0 t1 (MkDomifiedAttributes __d_css __d_class __d_simple _) (MkAttributes __css __class __simple _)
+nodesEq t0 t1 (MkDomifiedAttributes __d_style __d_class __d_simple _) (MkAttributes __style __class __simple _)
   = (t0 == t1)
-    && (__d_css == __css)
+    && (__d_style == __style)
     && (__d_class == __class)
     && (__d_simple == __simple)
 
@@ -201,7 +203,7 @@ hydratedAttrsToDomifiedAttrs
   -> jsval
   -> Attributes state jsval
   -> ReaderT (Browserful jsval) IO (DomifiedAttributes jsval)
-hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF parentNode (MkAttributes __css __class __simple __handlers)
+hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF parentNode (MkAttributes __style __class __simple __handlers)
   = do
     handlers <- mapM
       (\(k, v) -> do
@@ -209,18 +211,19 @@ hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF parentNode (MkAttributes
         return $ (k, func)
       )
       (HM.toList __handlers)
-    return $ MkDomifiedAttributes __css __class __simple (HM.fromList handlers)
+    return
+      $ MkDomifiedAttributes __style __class __simple (HM.fromList handlers)
 
 setAtts :: jsval -> DomifiedAttributes jsval -> ReaderT (Browserful jsval) IO ()
-setAtts currentNode domifiedAttributes@(MkDomifiedAttributes __css __class __simple _)
+setAtts currentNode domifiedAttributes@(MkDomifiedAttributes __style __class __simple _)
   = do
     _setAttribute <- asks setAttribute
-    liftIO $ maybe (pure ())
-                   ((_setAttribute currentNode "style") . cssToStyle)
-                   __css
-    liftIO $ maybe (pure ())
-                   ((_setAttribute currentNode "class") . unwords . toList)
-                   __class
+    liftIO $ if (HM.null __style)
+      then (pure ())
+      else (_setAttribute currentNode "style") . cssToStyle $ __style
+    liftIO $ if (S.null __class)
+      then (pure ())
+      else ((_setAttribute currentNode "class") . unwords . toList) $ __class
     liftIO $ mapM_ (\x -> _setAttribute currentNode (fst x) (snd x))
                    (HM.toList __simple)
     setEventHandlers currentNode domifiedAttributes
@@ -318,3 +321,6 @@ plzwrk' domF state env = do
     )
     env
   writeIORef refToOldStuff (OldStuff state newDom)
+
+plzwrk'_ :: (Int -> Node Int jsval) -> Browserful jsval -> IO ()
+plzwrk'_ domF env = plzwrk' domF 0 env

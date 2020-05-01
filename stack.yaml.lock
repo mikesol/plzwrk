@@ -61,12 +61,26 @@ packages:
   original:
     hackage: mtl-2.2.2
 - completed:
+    hackage: neat-interpolation-0.3.2.1@sha256:211a85c9f37223b02244d470b19087bf86f671cd0917aa50d1e6ca06b327b0c7,2676
+    pantry-tree:
+      size: 448
+      sha256: f73d32232fb4ea0f2215496554dbd1b10e88b7763c76c4cd5d6eaa1db0dc4a2c
+  original:
+    hackage: neat-interpolation-0.3.2.1
+- completed:
     hackage: random-1.1@sha256:7b67624fd76ddf97c206de0801dc7e888097e9d572974be9b9ea6551d76965df,1777
     pantry-tree:
       size: 637
       sha256: 14a1b01728c5584e87c9fa00746a66e28ffd89dd2c0eabd334c8463953496e1b
   original:
     hackage: random-1.1
+- completed:
+    hackage: parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
+    pantry-tree:
+      size: 2574
+      sha256: c17cc12ba9a912521d58d8bcee07830351fe27483d9309ebdac8e32175e10706
+  original:
+    hackage: parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
 - completed:
     hackage: hspec-2.7.1@sha256:0aa48928ce80a34f8ff8c5ef114bb6807edfb8d884bcd7211eceed710e7fb7a8,1769
     pantry-tree:

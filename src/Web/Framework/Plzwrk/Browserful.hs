@@ -18,6 +18,7 @@ data Browserful jsval = Browserful
   , getBool             :: jsval -> Text -> IO (Maybe Bool)
   , getChildren         :: jsval -> IO [jsval]
   , getDouble           :: jsval -> Text -> IO (Maybe Double)
+  , getHead             :: IO jsval
   , getElementById      :: Text -> IO (Maybe jsval)
   , getInt              :: jsval -> Text -> IO (Maybe Int)
   , getOpaque           :: jsval -> Text -> IO (Maybe jsval)
@@ -26,6 +27,7 @@ data Browserful jsval = Browserful
   , insertBefore        :: jsval -> jsval -> jsval -> IO ()
   , invokeOn            :: jsval -> Text -> IO ()
   , makeHaskellCallback :: (jsval -> IO ()) -> IO jsval
+  , random01            :: IO Double
   , removeChild         :: jsval -> jsval -> IO ()
   , removeEventListener :: jsval -> Text -> jsval -> IO ()
   , setAttribute        :: jsval -> Text -> Text -> IO ()

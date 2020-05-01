@@ -11,38 +11,42 @@ Stability   : experimental
 Portability : POSIX, Windows
 
 This module contains tags for web development. It has stuff like
-img, div, br, span, etc. Because the module is huge, we recommend
-doing selective import of the tags you need.
+@img@, @div@, @br@, @span@, etc. Because the module is huge, we
+recommend doing selective import of the tags you need.
 
 There are three conventions for tag naming:
 
-* tags that accept children, like div and p
-* tags that do not have children but could have attributes, like img
-* tags that have no attributes and no children, like br
+* tags that accept children, like @div@ and @p@
+* tags that do not have children but could have attributes, like @img@
+* tags that have no attributes and no children, like @br@
 
 For tags that can have children, the following six tags are exported
-(we'll use div as an example, but the same works for span, section etc):
+(we'll use @div@ as an example, but the same works for @span@, @section@ etc):
 
-* div : A div that does not need to be hydrated with a state.
-* div' : A div that is hydrated with a state.
-* div_ : A div with no attributes that does not need to be hydrated with a state.
-* div'_ : A div with no attributes that is hydrated with a state.
-* div__ : A div that only contains text that does not need to be hydrated with a state.
-* div'__ : A div that only contains text that is hydrated with a state.
+* @div@ : A div that does not need to be hydrated with a state.
+* @div'@ : A div that is hydrated with a state.
+* @div_@ : A div with no attributes that does not need to be hydrated with a state.
+* @div'_@ : A div with no attributes that is hydrated with a state.
+* @div__@ : A div that only contains text that does not need to be hydrated with a state.
+* @div'__@ : A div that only contains text that is hydrated with a state.
 
 For tags that do not have children, the following six tags are exported
-(we'll use img as an example):
+(we'll use @img@ as an example):
 
-* img : A div that does not need to be hydrated with a state.
-* img' : A div that is hydrated with a state.
-* img_ : A div with no attributes that does not need to be hydrated with a state.
-* img'_ : A div with no attributes that is hydrated with a state.
+* @img@ : A div that does not need to be hydrated with a state.
+* @img'@ : A div that is hydrated with a state.
+* @img_@ : A div with no attributes that does not need to be hydrated with a state.
+* @img'_@ : A div with no attributes that is hydrated with a state.
 
-For tags like br, there is only one export, namely br.
+For tags like br, there is only one export, namely @br@.
 
 Here are some gotchyas to bear in mind:
 
-* The HTML data tag is renamed to _data here.
+* The HTML @data@ tag is renamed to @_data@ here.
+* Due to the volume of tags in this module, some of
+  them follow an incorrect convention, ie accepting children
+  when they shouldn't be able to. If you spot one, please
+  make a PR.
 -}
 module Web.Framework.Plzwrk.Tag( 
 a

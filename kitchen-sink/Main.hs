@@ -47,7 +47,8 @@ main = do
             then div'_ []
             else p'__ $ DT.concat ["Life is like", a_n noun, noun]
           )
-          <$> _myNoun  -- here is our input
+          <$> _myNoun
+  -- here is our input
   let inputF = input
         (pure dats'
           { _simple   = singleton "type" "text"

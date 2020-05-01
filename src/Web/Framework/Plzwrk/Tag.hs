@@ -1,6 +1,49 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Module      : Web.Framework.Plzwrk.Tag
+Description : Base functions for plzwrk
+Copyright   : (c) Mike Solomon 2020
+License     : GPL-3
+Maintainer  : mike@meeshkan.com
+Stability   : experimental
+Portability : POSIX, Windows
+
+This module contains tags for web development. It has stuff like
+img, div, br, span, etc. Because the module is huge, we recommend
+doing selective import of the tags you need.
+
+There are three conventions for tag naming:
+
+* tags that accept children, like div and p
+* tags that do not have children but could have attributes, like img
+* tags that have no attributes and no children, like br
+
+For tags that can have children, the following six tags are exported
+(we'll use div as an example, but the same works for span, section etc):
+
+* div : A div that does not need to be hydrated with a state.
+* div' : A div that is hydrated with a state.
+* div_ : A div with no attributes that does not need to be hydrated with a state.
+* div'_ : A div with no attributes that is hydrated with a state.
+* div__ : A div that only contains text that does not need to be hydrated with a state.
+* div'__ : A div that only contains text that is hydrated with a state.
+
+For tags that do not have children, the following six tags are exported
+(we'll use img as an example):
+
+* img : A div that does not need to be hydrated with a state.
+* img' : A div that is hydrated with a state.
+* img_ : A div with no attributes that does not need to be hydrated with a state.
+* img'_ : A div with no attributes that is hydrated with a state.
+
+For tags like br, there is only one export, namely br.
+
+Here are some gotchyas to bear in mind:
+
+* The HTML data tag is renamed to _data here.
+-}
 module Web.Framework.Plzwrk.Tag( 
 a
 , a'
@@ -328,11 +371,6 @@ a
 , header__
 , header'__
 , hr
-, hr'
-, hr_
-, hr'_
-, hr__
-, hr'__
 , html
 , html'
 , html_
@@ -722,11 +760,6 @@ a
 , video__
 , video'__
 , wbr
-, wbr'
-, wbr_
-, wbr'_
-, wbr__
-, wbr'__
 , txt
 , txt'
 ) where
@@ -1659,24 +1692,8 @@ header'__ :: Sig__ s opq
 header'__ x = Element "header" dats [txt x]
 
 
-hr :: AFSig s opq
-hr x y = (\_ -> Element "hr" x y)
-
-hr' :: Sig s opq
-hr' = Element "hr"
-
-hr_ :: AFSig_ s opq
-hr_ x = (\_ -> Element "hr" dats x)
-
-hr'_ :: Sig_ s opq
-hr'_ x = Element "hr" dats x
-
-hr__ :: AFSig__ s opq
-hr__ x = (\_ -> Element "hr" dats [txt x])
-
-hr'__ :: Sig__ s opq
-hr'__ x = Element "hr" dats [txt x]
-
+hr :: (s -> Node s opq)
+hr = (\_ -> Element "br" dats [])
 
 html :: AFSig s opq
 html x y = (\_ -> Element "html" x y)
@@ -2906,23 +2923,8 @@ video'__ :: Sig__ s opq
 video'__ x = Element "video" dats [txt x]
 
 
-wbr :: AFSig s opq
-wbr x y = (\_ -> Element "wbr" x y)
-
-wbr' :: Sig s opq
-wbr' = Element "wbr"
-
-wbr_ :: AFSig_ s opq
-wbr_ x = (\_ -> Element "wbr" dats x)
-
-wbr'_ :: Sig_ s opq
-wbr'_ x = Element "wbr" dats x
-
-wbr__ :: AFSig__ s opq
-wbr__ x = (\_ -> Element "wbr" dats [txt x])
-
-wbr'__ :: Sig__ s opq
-wbr'__ x = Element "wbr" dats [txt x]
+wbr :: (s -> Node s opq)
+wbr = (\_ -> Element "br" dats [])
 
 txt :: Text -> (s -> Node s opq)
 txt t = (\_ -> TextNode t)

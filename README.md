@@ -1,6 +1,6 @@
 # plzwrk
 
-Yet another Haskell front end framework.
+Yet another Haskell front-end framework.
 
 ## Hello world
 
@@ -73,4 +73,6 @@ Plzwrk should be considered experimental. It is unfit for production and the syn
 
 Thanks for your interest in contributing!
 
-In general, you'll be able to work on `plzwrk` with `ghc` and not have to invoke `ahc-cabal`. If you compile the project with `ahc-cabal`, it will intermittently fail at the linking phase because `ahc-cabal` struggles with multiple executables due to a race condition in its parallel processing. If this happens, just run `ahc-cabal` again.
+In general, you'll be able to work on `plzwrk` with `ghc` and not have to invoke `ahc-cabal`. To make sure you didn't break anything, run `stack test`. In general, try to write new tests for non-trivial changes or features.
+
+If you compile the project with `ahc-cabal`, it will intermittently fail at the linking phase because `ahc-cabal` struggles with multiple executables due to a race condition in its parallel processing. If this happens, just run `ahc-cabal` again.

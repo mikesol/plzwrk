@@ -63,7 +63,7 @@ data MyState = MkMyState { _name :: Text, age :: Int, _tags :: [Text] }
 makeP = (\name age -> p'__ concat [name, " is the name and ", show age, " is my age."]) <$> _name <*> _age
 ```
 
-HTML-creatino functions can be nested, allowing for powerful abstractions.
+HTML-creation functions can be nested, allowing for powerful abstractions.
 
 ```haskell
 nested = div_ (take 10 $ repeat makeP)

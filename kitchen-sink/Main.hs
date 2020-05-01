@@ -47,7 +47,7 @@ main = do
   let surpriseF =
         (\noun -> if (length noun == 0)
             then div'_ []
-            else p'__ $ concat ["Life is like", " a ", noun]
+            else p'__ $ concat ["Life is like", a_n noun, noun]
           )
           <$> _myNoun
   -- here is our input

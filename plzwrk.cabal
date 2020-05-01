@@ -8,12 +8,14 @@ cabal-version: 1.12
 
 name:           plzwrk
 version:        0.0.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/plzwrk#readme>
-homepage:       https://github.com/githubuser/plzwrk#readme
-bug-reports:    https://github.com/githubuser/plzwrk/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
+category:       Web
+summary:        A front-end framework
+description:    Please see the README on GitHub at <https://github.com/meeshkan/plzwrk#readme>
+homepage:       https://github.com/meeshkan/plzwrk#readme
+bug-reports:    https://github.com/meeshkan/plzwrk/issues
+author:         Mike Solomon
+maintainer:     mike@meeshkan.com
+copyright:      2020 Mike Solomon
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -23,7 +25,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/plzwrk
+  location: https://github.com/meeshkan/plzwrk
 
 Flag Debug
   Description: Enable debug support
@@ -50,14 +52,14 @@ library
       src
   build-depends:
       base >=4.7 && <5
-    , aeson
-    , bytestring
-    , containers
-    , mtl
-    , random
-    , text
-    , transformers
-    , unordered-containers
+    , aeson >= 1.4.7 && < 1.5
+    , bytestring >= 0.10.10 && < 0.11
+    , containers >= 0.6.2 && < 0.7
+    , mtl >= 2.2.2 && < 2.3
+    , random >= 1.1 && < 1.2
+    , text >= 1.2.3 && < 1.3
+    , transformers >= 0.5.6 && < 0.6
+    , unordered-containers >= 0.2.10 && < 0.3
   default-language: Haskell2010
   if flag(plzwrk-enable-asterius)
     cpp-options:
@@ -76,10 +78,11 @@ executable kitchen-sink-exe
   build-depends:
       base >=4.7 && <5
     , plzwrk
-    , containers
-    , neat-interpolation
-    , text
-    , unordered-containers
+    , containers >= 0.6.2 && < 0.7
+    , neat-interpolation >= 0.5.1 && < 0.6
+    , text >= 1.2.3 && < 1.3
+    , unordered-containers >= 0.2.10 && < 0.3
+    
   default-language: Haskell2010
   if flag(plzwrk-enable-asterius)
     cpp-options:
@@ -95,7 +98,7 @@ executable hello-world-exe
   build-depends:
       base >=4.7 && <5
     , plzwrk
-    , text
+    , text >= 1.2.3 && < 1.3
   default-language: Haskell2010
   if flag(plzwrk-enable-asterius)
     cpp-options:
@@ -111,9 +114,9 @@ test-suite plzwrk-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , hspec
-    , mtl
+    , hspec >=2.7.0 && <2.7.1
+    , mtl >=2.2.2 && <2.3
     , plzwrk
-    , text
-    , unordered-containers
+    , text >=1.2.3 && <1.3
+    , unordered-containers >=0.2.10 && <0.3
   default-language: Haskell2010

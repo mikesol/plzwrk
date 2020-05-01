@@ -9,7 +9,7 @@ cabal-version: 1.12
 name:           plzwrk
 version:        0.0.0.0
 category:       Web
-summary:        A front-end framework
+synopsis:        A front-end framework
 description:    Please see the README on GitHub at <https://github.com/meeshkan/plzwrk#readme>
 homepage:       https://github.com/meeshkan/plzwrk#readme
 bug-reports:    https://github.com/meeshkan/plzwrk/issues

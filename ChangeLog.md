@@ -1,3 +1,5 @@
 # Changelog for plzwrk
 
-## Unreleased changes
+## 0.0.0.0
+
+- Initial release.

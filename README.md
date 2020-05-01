@@ -5,8 +5,6 @@ Yet another Haskell front-end framework.
 ## Hello world
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
-
 import           Web.Framework.Plzwrk
 import           Web.Framework.Plzwrk.Asterius
 import           Web.Framework.Plzwrk.Tag (p__)
@@ -52,6 +50,8 @@ The main documentation for `plzwrk` is on hackage. The four importable modules a
 - `Web.Frameworks.Plzwrk.MockJSVal` to use a mock browser.
 - `Web.Frameworks.Plzwrk.Asterius` to use a bindings for a real browser courtesy of [Asterius](https://github.com/tweag/asterius).
 
+## Design
+
 `plzwrk` is inspired by [redux](https://redux.js.org/) for its state management. The main idea is that you have a HTML-creation function that accepts one or more variables from a state that is composed, via applicative functors, with getters from a state.
 
 ```haskell
@@ -73,7 +73,7 @@ The convention is that HTML-creation functions use an apostrophe after the tag n
 
 The HTML-creation function itself should be pure with type `(s -> Node s opq)`, where `s` is the type of the state and `opq` is the type of the opaque pointer used to represent a JavaScript value.  `opq` will rarely need to be provided manually and is induced from the compiler based on the `Browserful` being used (ie `asteriusBrowser`).
 
-Event handlers are in the `IO` monad, accept an opaque pointer to the event plus the current state, and must return a new state (which could just be the original state). For example, if the state is an integer, a valid event handler could be:
+Event handlers take two arguments - an opaque pointer to the event and the current state - and must return a new state (which could just be the original state) in the `IO` monad. For example, if the state is an integer, a valid event handler could be:
 
 ```
 eh :: opq -> Int -> IO Int
@@ -81,6 +81,8 @@ eh _ i = pure $ i + 1
 ```
 
 To handle events (ie extract values from input events, etc) you can use one of the functions exported by `Web.Framework.Plzwrk`. Please see the hackage documentation for more information.
+
+> If you are using the Asterius backend, callback functions are still quite fragile and subject to breakage. The less third-party libraries you use in them, the better. For example, avoid using `Data.Text` and `aeson` if possible.
 
 ## Testing your code
 

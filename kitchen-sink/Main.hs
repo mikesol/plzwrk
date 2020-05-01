@@ -8,11 +8,13 @@ import           Asterius.Types
 import           Control.Monad
 import           Data.HashMap.Strict     hiding ( null )
 import           Data.IORef
-import qualified Data.Text                     as DT
 import           NeatInterpolation
 import qualified Data.Set                      as S
+import qualified Data.Text                     as DT
 import           Nouns
-import           Prelude                 hiding ( div, span )
+import           Prelude                 hiding ( div
+                                                , span
+                                                )
 import           Web.Framework.Plzwrk
 import           Web.Framework.Plzwrk.Asterius
 import           Web.Framework.Plzwrk.Tag
@@ -26,9 +28,9 @@ import qualified Web.Framework.Plzwrk.Tag      as T
                                                 , main'_
                                                 )
 data MyState = MyState
-  { _name               :: DT.Text
-  , _abstractToConcrete :: [(DT.Text, DT.Text)]
-  , _myNoun             :: DT.Text
+  { _name               :: String
+  , _abstractToConcrete :: [(String, String)]
+  , _myNoun             :: String
   }
   deriving Show
 
@@ -38,33 +40,34 @@ main = do
   -- add some css!
   _head   <- (getHead browser)
   _style  <- (createElement browser) "style"
-  _css    <- (createTextNode browser) myCss
+  _css    <- (createTextNode browser) (DT.unpack myCss)
   (appendChild browser) _style _css
   (appendChild browser) _head _style
   -- here is our "surprise" aphorism
   let surpriseF =
-        (\noun -> if (DT.length noun == 0)
+        (\noun -> if (length noun == 0)
             then div'_ []
-            else p'__ $ DT.concat ["Life is like", a_n noun, noun]
+            else p'__ $ concat ["Life is like", " a ", noun]
           )
           <$> _myNoun
   -- here is our input
-  let inputF = input
-        (pure dats'
-          { _simple   = singleton "type" "text"
-          , _style      = singleton "box-sizing" "content-box"
-          , _handlers = singleton
-                          "input"
-                          (\e s -> do
-                            opq <- (getOpaque browser) e "target"
-                            v   <- maybe (pure Nothing)
-                                         (\y -> (getString browser) y "value")
-                                         opq
-                            return $ maybe s (\q -> s { _myNoun = q }) v
-                          )
-          }
-        )
-        []
+  let
+    inputF = input
+      (pure dats'
+        { _simple   = singleton "type" "text"
+        , _style    = singleton "box-sizing" "content-box"
+        , _handlers = singleton
+                        "input"
+                        (\e s -> do
+                          opq <- (getOpaque browser) e "target"
+                          v   <- maybe (pure Nothing)
+                                       (\y -> (getString browser) y "value")
+                                       opq
+                          return $ maybe s (\q -> s { _myNoun = q }) v
+                        )
+        }
+      )
+      []
   -- and here is our main div
   let
     mainDivF =
@@ -76,16 +79,16 @@ main = do
                 (pure dats' { _class = S.singleton "res" })
                 (fmap
                   (\(abs, conc) ->
-                    (li__ (DT.concat [abs, " is like", a_n conc, conc]))
+                    (li__ (concat [abs, " is like", a_n conc, conc]))
                   )
                   abstractToConcrete
                 )
               , br
-              -- , surpriseF
+              , surpriseF
               , div
                 (pure dats'
                   { _style = fromList
-                             [("width", "100%"), ("display", "inline-block")]
+                               [("width", "100%"), ("display", "inline-block")]
                   }
                 )
                 [ button
@@ -97,15 +100,17 @@ main = do
                       (\_ s -> do
                         (consoleLog browser)
                           $  "Here is the current state "
-                          <> DT.pack (show s)
+                          <> show s
                         concept    <- randAbstract (random01 browser)
                         comparedTo <- randConcrete (random01 browser)
-                        let newS = s { _abstractToConcrete = (concept, comparedTo)
-                                                    : abstractToConcrete
-                                     }
+                        let
+                          newS = s
+                            { _abstractToConcrete = (concept, comparedTo)
+                                                      : abstractToConcrete
+                            }
                         (consoleLog browser)
                           $  "Here is the new state "
-                          <> DT.pack (show newS)
+                          <> show newS
                         return $ newS
                       )
                     }
@@ -141,34 +146,24 @@ main = do
   plzwrk' mainDivF state browser
 
 
-randFromList :: [DT.Text] -> IO Double -> IO DT.Text
+randFromList :: [String] -> IO Double -> IO String
 randFromList l f = do
   z <- f
   let i = round $ (fromIntegral $ length l) * z
   return $ l !! i
 
 
-a_n :: DT.Text -> DT.Text
+a_n :: String -> String
 a_n x =
-  if (  hd
-     == "a"
-     || hd
-     == "e"
-     || hd
-     == "i"
-     || hd
-     == "o"
-     || hd
-     == "u"
-     )
-    then " an "
-    else " a "
-  where hd = DT.take 1 x
+  let hd = take 1 x
+  in  if (hd == "a" || hd == "e" || hd == "i" || hd == "o" || hd == "u")
+        then " an "
+        else " a "
 
-randAbstract :: IO Double -> IO DT.Text
+randAbstract :: IO Double -> IO String
 randAbstract = randFromList abstract
 
-randConcrete :: IO Double -> IO DT.Text
+randConcrete :: IO Double -> IO String
 randConcrete = randFromList concrete
 
 myCss = [text|

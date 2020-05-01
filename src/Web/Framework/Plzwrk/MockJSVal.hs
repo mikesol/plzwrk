@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Framework.Plzwrk.MockJSVal
   ( MockJSVal(..)
   , makeMockBrowser
@@ -14,28 +12,19 @@ import           Data.HashMap.Strict     hiding ( foldr
                                                 )
 import           Data.IORef
 import           Data.List                      ( elemIndex )
-import           Data.Text               hiding ( drop
-                                                , empty
-                                                , foldr
-                                                , length
-                                                , head
-                                                , null
-                                                , singleton
-                                                , take
-                                                )
 import           Prelude                 hiding ( lookup )
 import           System.Random
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 
-data LogEvent = ListenerReceived Text Int
+data LogEvent = ListenerReceived String Int
     | AddedAsListenerTo Int
-    | AttributeReceived Text Text
+    | AttributeReceived String String
     | ChildReceived Int
     | AddedAsChildTo Int
     | RemovedNode Int
     | RemovedAsNodeFrom Int
-    | RemovedListener Text Int
+    | RemovedListener String Int
     | RemovedAsListenerFrom Int
     | CreatedElement Int
     | CreatedTextNode Int
@@ -49,16 +38,16 @@ data LogEvent = ListenerReceived Text Int
 
 
 data MockAttributes = MockAttributes
-  { _d_attrs  :: HashMap Text Text
-  , _d_events :: HashMap Text MockJSVal
+  { _d_attrs  :: HashMap String String
+  , _d_events :: HashMap String MockJSVal
   }
   deriving Show
 
-data MockJSVal = MockJSElement Int Text MockAttributes [MockJSVal] [LogEvent]
-    | MockJSTextNode Int Text [LogEvent]
+data MockJSVal = MockJSElement Int String MockAttributes [MockJSVal] [LogEvent]
+    | MockJSTextNode Int String [LogEvent]
     | MockJSFunction Int (MockJSVal -> IO ()) [LogEvent]
-    | MockJSObject Int (HashMap Text MockJSVal) [LogEvent]
-    | MockJSString Int Text [LogEvent]
+    | MockJSObject Int (HashMap String MockJSVal) [LogEvent]
+    | MockJSString Int String [LogEvent]
     | MockJSNumber Int Double [LogEvent]
     | MockJSArray Int [MockJSVal] [LogEvent]
     | MockMouseEvent Int
@@ -113,7 +102,7 @@ _ptr (MockJSArray    a _ _   ) = a
 
 _addEventListener
   :: MockJSVal
-  -> Text
+  -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
 _addEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
@@ -124,7 +113,7 @@ _addEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@
       )
 _addEventListener _ _ _ = error "Can only add event listener to element"
 
-_setAttribute :: MockJSVal -> Text -> Text -> IO (MockAttributes, [LogEvent])
+_setAttribute :: MockJSVal -> String -> String -> IO (MockAttributes, [LogEvent])
 _setAttribute (MockJSElement n _ (MockAttributes atts lstns) _ logn) nm attr =
   pure
     $ ( MockAttributes (insert nm attr atts) lstns
@@ -169,7 +158,7 @@ _removeChild _ _ = error "Can only remove element from element"
 
 _removeEventListener
   :: MockJSVal
-  -> Text
+  -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
 _removeEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
@@ -229,11 +218,11 @@ _insertBefore (MockJSElement n _ _ kids logn) newI@(MockJSTextNode m _ logm) exi
   = _insertBeforeInternal n kids logn newI m logm existingI l logl
 _insertBefore _ _ _ = error "Can only append element to element"
 
-_getTag :: MockJSVal -> IO Text
+_getTag :: MockJSVal -> IO String
 _getTag (MockJSElement _ tag _ _ _) = return tag
 _getTag _                           = error "Can only get tag of element"
 
-_textContent :: MockJSVal -> IO Text
+_textContent :: MockJSVal -> IO String
 _textContent (MockJSTextNode _ txt _) = return txt
 _textContent _ = error "Can only get text content of text node"
 
@@ -291,7 +280,7 @@ wrt env elt v = do
   let bz = unBrowser r
   writeIORef env $ r { unBrowser = insert elt v bz }
 
-_'addEventListener :: IORef MockBrowserInternal -> Int -> Text -> Int -> IO ()
+_'addEventListener :: IORef MockBrowserInternal -> Int -> String -> Int -> IO ()
 _'addEventListener env elt evt fn = do
   _elt                            <- look env elt
   _fn                             <- look env fn
@@ -307,7 +296,7 @@ _'appendChild env parent kid = do
   wrt env parent $ _withNewLog (_withNewKids _parent newKids) newLogParent
   wrt env kid $ _withNewLog _kid newLogKid
 
-_'createElement :: IORef MockBrowserInternal -> Text -> IO Int
+_'createElement :: IORef MockBrowserInternal -> String -> IO Int
 _'createElement env tg = do
   i <- incr env
   let elt =
@@ -318,41 +307,41 @@ _'createElement env tg = do
 _'random01 :: IORef MockBrowserInternal -> IO Double
 _'random01 _ = pure 0.5
 
-_'consoleLog :: IORef MockBrowserInternal -> Text -> IO ()
+_'consoleLog :: IORef MockBrowserInternal -> String -> IO ()
 _'consoleLog _ txt = print txt
 
 _'consoleLog' :: IORef MockBrowserInternal -> Int -> IO ()
 _'consoleLog' _ v = print (show v)
 
 
-_'createTextNode :: IORef MockBrowserInternal -> Text -> IO Int
+_'createTextNode :: IORef MockBrowserInternal -> String -> IO Int
 _'createTextNode env txt = do
   i <- incr env
   let elt = MockJSTextNode i txt [CreatedTextNode i]
   wrt env i elt
   return i
 
-_'getString :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Text)
+_'getString :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe String)
 _'getString env _ _ = pure Nothing -- not implemented yet
 
-_'getBool :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Bool)
+_'getBool :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Bool)
 _'getBool env _ _ = pure Nothing -- not implemented yet
 
-_'getInt :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Int)
+_'getInt :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
 _'getInt env _ _ = pure Nothing -- not implemented yet
 
-_'getDouble :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Double)
+_'getDouble :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Double)
 _'getDouble env _ _ = pure Nothing -- not implemented yet
 
-_'getOpaque :: IORef MockBrowserInternal -> Int -> Text -> IO (Maybe Int)
+_'getOpaque :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
 _'getOpaque env _ _ = pure Nothing -- not implemented yet
 
 
-_'invokeOn :: IORef MockBrowserInternal -> Int -> Text -> IO ()
+_'invokeOn :: IORef MockBrowserInternal -> Int -> String -> IO ()
 _'invokeOn env _ _ = pure () -- not implemented yet
 
 
-_'getTag :: IORef MockBrowserInternal -> Int -> IO Text
+_'getTag :: IORef MockBrowserInternal -> Int -> IO String
 _'getTag env elt = do
   _elt <- look env elt
   _getTag _elt
@@ -362,7 +351,7 @@ _'getChildren env elt = do
   _elt <- look env elt
   _getChildren _elt
 
-_'textContent :: IORef MockBrowserInternal -> Int -> IO Text
+_'textContent :: IORef MockBrowserInternal -> Int -> IO String
 _'textContent env elt = do
   _elt <- look env elt
   _textContent _elt
@@ -378,7 +367,7 @@ _'click env elt = do
   _elt <- look env elt
   _click _elt
 
-idEq :: Text -> MockJSVal -> Bool
+idEq :: String -> MockJSVal -> Bool
 idEq txt (MockJSElement _ _ (MockAttributes atts _) _ _) =
   Just txt == (lookup "id" atts)
 idEq _ _ = False
@@ -393,13 +382,13 @@ _'getBody ref = do
 _'getHead :: IORef MockBrowserInternal -> IO Int
 _'getHead ref = pure (-1) -- need to implement in mock?
 
-_getElementByIdInternal :: MockJSVal -> Text -> [Int]
+_getElementByIdInternal :: MockJSVal -> String -> [Int]
 _getElementByIdInternal jsv@(MockJSElement _ _ _ ch _) txt = if (idEq txt jsv)
   then [_ptr jsv]
   else (foldr (++) [] $ fmap (\x -> _getElementByIdInternal x txt) ch)
 _getElementByIdInternal _ _ = []
 
-_'getElementById :: IORef MockBrowserInternal -> Text -> IO (Maybe Int)
+_'getElementById :: IORef MockBrowserInternal -> String -> IO (Maybe Int)
 _'getElementById env txt = do
   body  <- _'getBody env
   _body <- look env body
@@ -435,7 +424,7 @@ _'removeChild env parent kid = do
   wrt env kid $ _withNewLog _kid newLogKid
 
 _'removeEventListener
-  :: IORef MockBrowserInternal -> Int -> Text -> Int -> IO ()
+  :: IORef MockBrowserInternal -> Int -> String -> Int -> IO ()
 _'removeEventListener env elt evt fn = do
   _elt                            <- look env elt
   _fn                             <- look env fn
@@ -443,7 +432,7 @@ _'removeEventListener env elt evt fn = do
   wrt env elt $ _withNewLog (_withNewAttrs _elt newAttrs) newLogElt
   wrt env fn $ _withNewLog _fn newLogFn
 
-_'setAttribute :: IORef MockBrowserInternal -> Int -> Text -> Text -> IO ()
+_'setAttribute :: IORef MockBrowserInternal -> Int -> String -> String -> IO ()
 _'setAttribute env elt nm attr = do
   _elt               <- look env elt
   (newAttrs, newLog) <- _setAttribute _elt nm attr

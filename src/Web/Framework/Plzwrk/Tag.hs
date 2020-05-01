@@ -768,7 +768,7 @@ a
 , txt'
 ) where
 
-import Data.Text hiding(map, span, head, center)
+import Prelude(String)
 import Web.Framework.Plzwrk.Base
 
 type AFSig s opq
@@ -778,8 +778,8 @@ type Sig s opq = (s -> Attributes s opq) -> [s -> Node s opq] -> Node s opq
 type AFSig_ s opq = [s -> Node s opq] -> (s -> Node s opq)
 type Sig_ s opq = [s -> Node s opq] -> Node s opq
 
-type AFSig__ s opq = Text -> (s -> Node s opq)
-type Sig__ s opq = Text -> Node s opq
+type AFSig__ s opq = String -> (s -> Node s opq)
+type Sig__ s opq = String -> Node s opq
 
 
 a :: AFSig s opq
@@ -2930,10 +2930,10 @@ video'__ x = Element "video" dats [txt x]
 wbr :: (s -> Node s opq)
 wbr = (\_ -> Element "br" dats [])
 
-txt :: Text -> (s -> Node s opq)
+txt :: String -> (s -> Node s opq)
 txt t = (\_ -> TextNode t)
 
-txt' :: Text -> Node s opq
+txt' :: String -> Node s opq
 txt' = TextNode
 
 

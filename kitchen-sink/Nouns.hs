@@ -1,7 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Nouns(abstract, concrete) where
-
-import Data.Text
 
 abstract =
   [ "Ability"
@@ -342,7 +339,7 @@ abstract =
   , "Width"
   , "Wisdom"
   , "Wit"
-  ] :: [Text]
+  ]
 
 concrete =
   [ "whisker"
@@ -519,4 +516,4 @@ concrete =
   , "meteor shower"
   , "thunderbolt"
   , "tsunami"
-  ] :: [Text]
+  ]

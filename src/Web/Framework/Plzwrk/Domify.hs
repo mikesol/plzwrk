@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Framework.Plzwrk.Domify
   ( reconcile
   , plzwrk
@@ -17,29 +15,24 @@ import           Control.Monad.Trans.Maybe
 import qualified Data.HashMap.Strict           as HM
 import           Data.IORef
 import           Data.Maybe                     ( catMaybes )
-import           Data.Set                hiding ( take )
 import qualified Data.Set                      as S
-import           Data.Text               hiding ( length
-                                                , take
-                                                )
-import           Prelude                 hiding ( unwords )
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 
 data DomifiedAttributes jsval = MkDomifiedAttributes
-  { _d_style     :: HM.HashMap Text Text
-  , _d_class     :: Set Text
-  , _d_simple    :: HM.HashMap Text Text
-  , _d_handlers  :: HM.HashMap Text jsval
+  { _d_style     :: HM.HashMap String String
+  , _d_class     :: S.Set String
+  , _d_simple    :: HM.HashMap String String
+  , _d_handlers  :: HM.HashMap String jsval
   }
 
 data DomifiedNode jsval = DomifiedElement
-    { _dom_tag  :: Text
+    { _dom_tag  :: String
     , _dom_attr :: (DomifiedAttributes jsval)
     , _dom_kids :: [DomifiedNode jsval]
     , _dom_ptr  :: jsval
     }
-    | DomifiedTextNode Text jsval
+    | DomifiedTextNode String jsval
 
 data OldStuff state jsval = OldStuff {
   _oldState :: state,
@@ -47,6 +40,7 @@ data OldStuff state jsval = OldStuff {
 }
 
 ---------- reader functions
+
 
 
 freeAttrFunctions
@@ -62,37 +56,46 @@ freeFunctions (DomifiedElement _ b c _) = do
 freeFunctions _ = pure ()
 
 nodesEq
-  :: Text -> Text -> DomifiedAttributes jsval -> Attributes state jsval -> Bool
+  :: String
+  -> String
+  -> DomifiedAttributes jsval
+  -> Attributes state jsval
+  -> Bool
 nodesEq t0 t1 (MkDomifiedAttributes __d_style __d_class __d_simple _) (MkAttributes __style __class __simple _)
   = (t0 == t1)
     && (__d_style == __style)
     && (__d_class == __class)
     && (__d_simple == __simple)
 
+padr :: Int -> a -> [a] -> [a]
+padr i v l = if (length l >= i) then l else padr i v (l ++ [v])
+
 reconcile
   :: IORef (OldStuff state jsval)
   -> (state -> Node state jsval)
   -> jsval
+  -> jsval
   -> Maybe (DomifiedNode jsval)
   -> Maybe (HydratedNode state jsval)
-  -> ReaderT (Browserful jsval) IO (Maybe (DomifiedNode jsval))
-reconcile refToOldStuff domCreationF parentNode (Just (DomifiedElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedElement maybeNewTag maybeNewAttributes maybeNewChildren))
+  -> ReaderT
+       (Browserful jsval)
+       IO
+       (Maybe (DomifiedNode jsval))
+reconcile refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedElement maybeNewTag maybeNewAttributes maybeNewChildren))
   = if (nodesEq currentTag maybeNewTag currentAttributes maybeNewAttributes)
     then
       (do
 -- the tags and attributes are equal
 
+
         let maxlen = max (length maybeNewChildren) (length currentChildren)
         newChildren <- sequence $ getZipList
-          (   (reconcile refToOldStuff domCreationF currentNode)
-          <$> (ZipList
-                (take maxlen $ (fmap Just currentChildren) ++ repeat Nothing)
-              )
-          <*> (ZipList
-                (take maxlen $ (fmap Just maybeNewChildren) ++ repeat Nothing)
-              )
+          (   (reconcile refToOldStuff domCreationF currentNode topLevelNode)
+          <$> (ZipList (padr maxlen Nothing (fmap Just currentChildren)))
+          <*> (ZipList (padr maxlen Nothing (fmap Just maybeNewChildren)))
           )
         -- make new attributes to set event handlers
+
 
         currentAttributes <- hydratedAttrsToDomifiedAttrs refToOldStuff
                                                           domCreationF
@@ -112,53 +115,62 @@ reconcile refToOldStuff domCreationF parentNode (Just (DomifiedElement currentTa
         res <- domify refToOldStuff
                       domCreationF
                       parentNode
+                      topLevelNode
                       (Just currentNode)
                       maybeNewNode
         return $ Just res
       )
-reconcile refToOldStuff domCreationF parentNode (Just currentDomifiedText@(DomifiedTextNode currentText currentNode)) (Just maybeNewNode@(HydratedTextNode maybeNewText))
-  = if (currentText == maybeNewText)
-    then pure (Just currentDomifiedText)
+reconcile refToOldStuff domCreationF parentNode topLevelNode (Just currentDomifiedString@(DomifiedTextNode currentString currentNode)) (Just maybeNewNode@(HydratedTextNode maybeNewString))
+  = if (currentString == maybeNewString)
+    then pure (Just currentDomifiedString)
     else
       (do
         res <- domify refToOldStuff
                       domCreationF
                       parentNode
+                      topLevelNode
                       (Just currentNode)
                       maybeNewNode
         return $ Just res
       )
-reconcile refToOldStuff domCreationF parentNode (Just (DomifiedElement _ _ _ currentNode)) (Just maybeNewNode@(HydratedTextNode _))
+reconcile refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElement _ _ _ currentNode)) (Just maybeNewNode@(HydratedTextNode _))
   = do
     res <- domify refToOldStuff
                   domCreationF
                   parentNode
+                  topLevelNode
                   (Just currentNode)
                   maybeNewNode
     return $ Just res
-reconcile refToOldStuff domCreationF parentNode (Just (DomifiedTextNode _ currentNode)) (Just maybeNewNode@(HydratedElement _ _ _))
+reconcile refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedTextNode _ currentNode)) (Just maybeNewNode@(HydratedElement _ _ _))
   = do
     res <- domify refToOldStuff
                   domCreationF
                   parentNode
+                  topLevelNode
                   (Just currentNode)
                   maybeNewNode
     return $ Just res
-reconcile refToOldStuff domCreationF parentNode Nothing (Just maybeNewNode) =
-  do
-    res <- domify refToOldStuff domCreationF parentNode Nothing maybeNewNode
+reconcile refToOldStuff domCreationF parentNode topLevelNode Nothing (Just maybeNewNode)
+  = do
+    res <- domify refToOldStuff
+                  domCreationF
+                  parentNode
+                  topLevelNode
+                  Nothing
+                  maybeNewNode
     return $ Just res
-reconcile refToOldStuff domCreationF parentNode (Just (DomifiedElement _ _ _ currentNode)) Nothing
+reconcile refToOldStuff domCreationF parentNode _ (Just (DomifiedElement _ _ _ currentNode)) Nothing
   = do
     _removeChild <- asks removeChild
     liftIO $ _removeChild parentNode currentNode
     return Nothing
-reconcile refToOldStuff domCreationF parentNode (Just (DomifiedTextNode _ currentNode)) Nothing
+reconcile refToOldStuff domCreationF parentNode _ (Just (DomifiedTextNode _ currentNode)) Nothing
   = do
     _removeChild <- asks removeChild
     liftIO $ _removeChild parentNode currentNode
     return Nothing
-reconcile _ _ _ _ _ = error "Inconsistent state"
+reconcile _ _ _ _ _ _ = error "Inconsistent state"
 
 cbMaker
   :: IORef (OldStuff state jsval)
@@ -168,7 +180,7 @@ cbMaker
   -> Browserful jsval
   -> jsval
   -> IO ()
-cbMaker refToOldStuff domCreationF parentNode eventToState env event = do
+cbMaker refToOldStuff domCreationF topLevelNode eventToState env event = do
   oldStuff <- readIORef refToOldStuff
   let oldDom   = _oldDom oldStuff
   let oldState = _oldState oldStuff
@@ -177,7 +189,8 @@ cbMaker refToOldStuff domCreationF parentNode eventToState env event = do
   newDom <- runReaderT
     (reconcile refToOldStuff
                domCreationF
-               parentNode
+               topLevelNode
+               topLevelNode
                oldDom
                (Just newHydratedDom)
     )
@@ -191,11 +204,11 @@ eventable
   -> jsval
   -> (jsval -> state -> IO state)
   -> ReaderT (Browserful jsval) IO jsval
-eventable refToOldStuff domCreationF parentNode eventToState = do
+eventable refToOldStuff domCreationF topLevelNode eventToState = do
   _makeHaskellCallback <- asks makeHaskellCallback
   env                  <- ask
   liftIO $ _makeHaskellCallback
-    (cbMaker refToOldStuff domCreationF parentNode eventToState env)
+    (cbMaker refToOldStuff domCreationF topLevelNode eventToState env)
 
 hydratedAttrsToDomifiedAttrs
   :: IORef (OldStuff state jsval)
@@ -203,11 +216,11 @@ hydratedAttrsToDomifiedAttrs
   -> jsval
   -> Attributes state jsval
   -> ReaderT (Browserful jsval) IO (DomifiedAttributes jsval)
-hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF parentNode (MkAttributes __style __class __simple __handlers)
+hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF topLevelNode (MkAttributes __style __class __simple __handlers)
   = do
     handlers <- mapM
       (\(k, v) -> do
-        func <- eventable refToOldStuff domCreationF parentNode v
+        func <- eventable refToOldStuff domCreationF topLevelNode v
         return $ (k, func)
       )
       (HM.toList __handlers)
@@ -223,13 +236,13 @@ setAtts currentNode domifiedAttributes@(MkDomifiedAttributes __style __class __s
       else (_setAttribute currentNode "style") . cssToStyle $ __style
     liftIO $ if (S.null __class)
       then (pure ())
-      else ((_setAttribute currentNode "class") . unwords . toList) $ __class
+      else ((_setAttribute currentNode "class") . unwords . S.toList) $ __class
     liftIO $ mapM_ (\x -> _setAttribute currentNode (fst x) (snd x))
                    (HM.toList __simple)
     setEventHandlers currentNode domifiedAttributes
 
 handleOnlyEventListeners
-  :: (jsval -> Text -> jsval -> IO ())
+  :: (jsval -> String -> jsval -> IO ())
   -> jsval
   -> DomifiedAttributes jsval
   -> IO ()
@@ -257,10 +270,11 @@ domify
   :: IORef (OldStuff state jsval)
   -> (state -> Node state jsval)
   -> jsval
+  -> jsval
   -> Maybe jsval
   -> HydratedNode state jsval
   -> ReaderT (Browserful jsval) IO (DomifiedNode jsval)
-domify refToOldStuff domCreationF parentNode replacing (HydratedElement tag attrs children)
+domify refToOldStuff domCreationF parentNode topLevelNode replacing (HydratedElement tag attrs children)
   = do
     _createElement <- asks createElement
     _appendChild   <- asks appendChild
@@ -269,11 +283,12 @@ domify refToOldStuff domCreationF parentNode replacing (HydratedElement tag attr
     newNode        <- liftIO $ _createElement tag
     newAttributes  <- hydratedAttrsToDomifiedAttrs refToOldStuff
                                                    domCreationF
-                                                   parentNode
+                                                   topLevelNode
                                                    attrs
     setAtts newNode newAttributes
-    newChildren <- mapM (domify refToOldStuff domCreationF newNode Nothing)
-                        children
+    newChildren <- mapM
+      (domify refToOldStuff domCreationF newNode topLevelNode Nothing)
+      children
     maybe
       (liftIO $ _appendChild parentNode newNode)
       (\x -> do
@@ -282,7 +297,7 @@ domify refToOldStuff domCreationF parentNode replacing (HydratedElement tag attr
       )
       replacing
     liftIO $ return (DomifiedElement tag newAttributes newChildren newNode)
-domify _ _ parentNode replacing (HydratedTextNode text) = do
+domify _ _ parentNode topLevelNode replacing (HydratedTextNode text) = do
   _createElement  <- asks createElement
   _appendChild    <- asks appendChild
   _insertBefore   <- asks insertBefore
@@ -299,14 +314,14 @@ domify _ _ parentNode replacing (HydratedTextNode text) = do
   liftIO $ return (DomifiedTextNode text newTextNode)
 
 plzwrk
-  :: (state -> Node state jsval) -> state -> Browserful jsval -> Text -> IO ()
+  :: (state -> Node state jsval) -> state -> Browserful jsval -> String -> IO ()
 plzwrk domF state env nodeId = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
   parentNode    <- (getElementById env) nodeId
   newDom        <- maybe
-    (error $ ("Cannot find node with id " <> unpack nodeId))
+    (error $ ("Cannot find node with id " <> nodeId))
     (\x -> runReaderT
-      (reconcile refToOldStuff domF x Nothing (Just $ hydrate state domF))
+      (reconcile refToOldStuff domF x x Nothing (Just $ hydrate state domF))
       env
     )
     parentNode
@@ -317,7 +332,12 @@ plzwrk' domF state env = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
   parentNode    <- (getBody env)
   newDom        <- runReaderT
-    (reconcile refToOldStuff domF parentNode Nothing (Just $ hydrate state domF)
+    (reconcile refToOldStuff
+               domF
+               parentNode
+               parentNode
+               Nothing
+               (Just $ hydrate state domF)
     )
     env
   writeIORef refToOldStuff (OldStuff state newDom)

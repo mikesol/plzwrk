@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP               #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 import           Web.Framework.Plzwrk
 #if defined(PLZWRK_ENABLE_ASTERIUS)

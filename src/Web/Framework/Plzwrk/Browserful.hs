@@ -3,33 +3,31 @@ module Web.Framework.Plzwrk.Browserful
   )
 where
 
-import           Data.Text
-
 data Browserful jsval = Browserful
-  { addEventListener    :: jsval -> Text -> jsval -> IO ()
+  { addEventListener    :: jsval -> String -> jsval -> IO ()
   , appendChild         :: jsval -> jsval -> IO ()
-  , consoleLog          :: Text -> IO ()
+  , consoleLog          :: String -> IO ()
   , consoleLog'         :: jsval -> IO ()
   , click               :: jsval -> IO ()
-  , createElement       :: Text -> IO jsval
-  , createTextNode      :: Text -> IO jsval
+  , createElement       :: String -> IO jsval
+  , createTextNode      :: String -> IO jsval
   , freeCallback        :: jsval -> IO ()
   , getBody             :: IO jsval
-  , getBool             :: jsval -> Text -> IO (Maybe Bool)
+  , getBool             :: jsval -> String -> IO (Maybe Bool)
   , getChildren         :: jsval -> IO [jsval]
-  , getDouble           :: jsval -> Text -> IO (Maybe Double)
+  , getDouble           :: jsval -> String -> IO (Maybe Double)
   , getHead             :: IO jsval
-  , getElementById      :: Text -> IO (Maybe jsval)
-  , getInt              :: jsval -> Text -> IO (Maybe Int)
-  , getOpaque           :: jsval -> Text -> IO (Maybe jsval)
-  , getString           :: jsval -> Text -> IO (Maybe Text)
-  , getTag              :: jsval -> IO Text
+  , getElementById      :: String -> IO (Maybe jsval)
+  , getInt              :: jsval -> String -> IO (Maybe Int)
+  , getOpaque           :: jsval -> String -> IO (Maybe jsval)
+  , getString           :: jsval -> String -> IO (Maybe String)
+  , getTag              :: jsval -> IO String
   , insertBefore        :: jsval -> jsval -> jsval -> IO ()
-  , invokeOn            :: jsval -> Text -> IO ()
+  , invokeOn            :: jsval -> String -> IO ()
   , makeHaskellCallback :: (jsval -> IO ()) -> IO jsval
   , random01            :: IO Double
   , removeChild         :: jsval -> jsval -> IO ()
-  , removeEventListener :: jsval -> Text -> jsval -> IO ()
-  , setAttribute        :: jsval -> Text -> Text -> IO ()
-  , textContent         :: jsval -> IO Text
+  , removeEventListener :: jsval -> String -> jsval -> IO ()
+  , setAttribute        :: jsval -> String -> String -> IO ()
+  , textContent         :: jsval -> IO String
   }

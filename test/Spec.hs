@@ -1,16 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import           Control.Monad
 import           Control.Monad.Reader
 import           Data.IORef
-import           Data.Text               hiding ( head
-                                                , length
-                                                , take
-                                                , singleton
-                                                )
-import           Prelude                 hiding ( concat
-                                                , div
-                                                )
+import           Prelude                 hiding ( div )
 import           Test.Hspec
 import           Web.Framework.Plzwrk
 import           Web.Framework.Plzwrk.MockJSVal
@@ -18,7 +9,7 @@ import           Data.HashMap.Strict
 import           Web.Framework.Plzwrk.Tag(p_, txt, button, div'_)
 
 data MyState = MyState
-  { _name :: Text
+  { _name :: String
   , _ctr  :: Int
   }
 
@@ -27,7 +18,7 @@ main = hspec $ do
   describe "Element with basic state" $ do
     let domF =
           (\x y -> div'_
-              [ p_ (take y $ repeat (txt (concat [x, pack $ show y])))
+              [ p_ (take y $ repeat (txt (concat [x, show y])))
               , button
                 (pure dats'
                   { _simple   = singleton "id" "incr"
@@ -57,6 +48,7 @@ main = hspec $ do
       newDom      <- runReaderT
         (reconcile refToOldDom
                    domF
+                   parentNode
                    parentNode
                    Nothing
                    (Just $ hydrate state domF)

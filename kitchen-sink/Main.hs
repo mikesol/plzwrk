@@ -41,7 +41,13 @@ main = do
   _css    <- (createTextNode browser) myCss
   (appendChild browser) _style _css
   (appendChild browser) _head _style
-  -- here is our input
+  -- here is our "surprise" aphorism
+  let surpriseF =
+        (\noun -> if (DT.length noun == 0)
+            then div'_ []
+            else p'__ $ DT.concat ["Life is like", a_n noun, noun]
+          )
+          <$> _myNoun  -- here is our input
   let inputF = input
         (pure dats'
           { _simple   = singleton "type" "text"
@@ -68,12 +74,13 @@ main = do
               , ul
                 (pure dats' { _class = S.singleton "res" })
                 (fmap
-                  (\nounPair ->
-                    (li__ (DT.concat [fst nounPair, " is like a ", snd nounPair]))
+                  (\(abs, conc) ->
+                    (li__ (DT.concat [abs, " is like", a_n conc, conc]))
                   )
                   abstractToConcrete
                 )
               , br
+              -- , surpriseF
               , div
                 (pure dats'
                   { _style = fromList
@@ -92,10 +99,13 @@ main = do
                           <> DT.pack (show s)
                         concept    <- randAbstract (random01 browser)
                         comparedTo <- randConcrete (random01 browser)
-                        return $ s
-                          { _abstractToConcrete = (concept, comparedTo)
+                        let newS = s { _abstractToConcrete = (concept, comparedTo)
                                                     : abstractToConcrete
-                          }
+                                     }
+                        (consoleLog browser)
+                          $  "Here is the new state "
+                          <> DT.pack (show newS)
+                        return $ newS
                       )
                     }
                   )
@@ -136,6 +146,23 @@ randFromList l f = do
   let i = round $ (fromIntegral $ length l) * z
   return $ l !! i
 
+
+a_n :: DT.Text -> DT.Text
+a_n x =
+  if (  hd
+     == "a"
+     || hd
+     == "e"
+     || hd
+     == "i"
+     || hd
+     == "o"
+     || hd
+     == "u"
+     )
+    then " an "
+    else " a "
+  where hd = DT.take 1 x
 
 randAbstract :: IO Double -> IO DT.Text
 randAbstract = randFromList abstract
@@ -292,6 +319,7 @@ button {
     border: none;
     color: white;
     padding: 10px 12px;
+    margin: 10px;
     text-align: center;
     border-radius: 12px;
     text-decoration: none;

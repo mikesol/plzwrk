@@ -33,15 +33,14 @@ Also, add `plzwrk-X.Y.Z.?` to the `extra-deps` list of your `stack.yaml` file if
 
 ## Making a webpage
 
-`plzwrk` uses [Asterius](https://github.com/tweag/asterius) as a backend to output to Web Assembly. Compiling an application using `plzwrk` application is no different than compiling an application using `ahc-cabal` and `ahc-dist` as described in the [Asterius documentation](https://asterius.netlify.app) with **one caveat**. You **must** use `-f plzwrk-enable-asterius` when running `ahc-cabal`.
+`plzwrk` uses [Asterius](https://github.com/tweag/asterius) as its backend for web development. Compiling an application using `plzwrk` is no different than compiling an application using `ahc-cabal` and `ahc-dist` as described in the [Asterius documentation](https://asterius.netlify.app) with **one caveat**. You **must** use `-f plzwrk-enable-asterius` when running `ahc-cabal`.
 
-A minimal flow is below, mostly copied from the asterius documentation:
+A minimal flow is shown below, mostly copied from the asterius documentation. It assumes that you have a viable stack project in the root directory. Note the use of the `-f plzwrk-enable-asterius` flag in the `ahc-cabal` step.
 
 ```bash
-username@hostname:~/project$ docker run --rm -it -v $(pwd):/project -w /project terrorjack/asterius
-asterius@hostname:/project$ ahc-link --input-hs main.hs
-asterius@hostname:/project$ ahc-cabal new-install -f plzwrk-enable-asterius --installdir <my-install-dir> <my-executable-name>
-asterius@hostname:/project$ cd <my-install-dir> && 
+username@hostname:~/my-dir$ docker run --rm -it -v $(pwd):/project -w /project terrorjack/asterius
+asterius@hostname:/project$ ahc-cabal new-install -f plzwrk-enable-asterius --installdir <inst-dir> <exec-name>
+asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --browser --bundle
 ```
 
 ## Documentation
@@ -52,6 +51,36 @@ The main documentation for `plzwrk` is on hackage. The four importable modules a
 - `Web.Frameworks.Plzwrk.Tag` for helper functions to make takes like `input` or `br`.
 - `Web.Frameworks.Plzwrk.MockJSVal` to use a mock browser.
 - `Web.Frameworks.Plzwrk.Asterius` to use a bindings for a real browser courtesy of [Asterius](https://github.com/tweag/asterius).
+
+`plzwrk` is inspired by redux for its state management. The main idea is that you have a HTML-creation function that accepts one or more variables from a state that is composed, via applicative functors, with getters from a state.
+
+```haskell
+
+-- State
+data MyState = MkMyState { _name :: Text, age :: Int, _tags :: [Text] }
+
+-- Function hydrating a DOM with elementse from the state
+makeP = (\name age -> p'__ concat [name, " is the name and ", show age, " is my age."]) <$> _name <*> _age
+```
+
+HTML-creatino functions can be nested, allowing for powerful abstractions.
+
+```haskell
+nested = div_ (take 10 $ repeat makeP)
+```
+
+The convention is that HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments and no apostrophe (ie `div`) if they don't. Additionally, tags that do not have any attributes (class, style etc) are marked with a trailing underscore (`div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (`p__ "hello"`).
+
+The HTML-creation function itself should be pure with type `(s -> Node s opq)`, where `s` is the type of the state and `opq` is the type of the opaque pointer used to represent a JavaScript value.  `opq` will rarely need to be provided manually and is induced from the compiler based on the `Browserful` being used (ie `asteriusBrowser`).
+
+Event handlers are in the `IO` monad, accept an opaque pointer to the event plus the current state, and must return a new state (which could just be the original state). For example, if the state is an integer, a valid event handler could be:
+
+```
+eh :: opq -> Int -> IO Int
+eh _ i = pure $ i + 1
+```
+
+To handle events (ie extract values from input events, etc) you can use one of the functions exported by `Web.Framework.Plzwrk`. Please see the hackage documentation for more information.
 
 ## Testing your code
 
@@ -71,8 +100,6 @@ Plzwrk should be considered experimental. It is unfit for production and the syn
 
 ## Contributing
 
-Thanks for your interest in contributing!
+Thanks for your interest in contributing! Pull requests are welcome :)
 
-In general, you'll be able to work on `plzwrk` with `ghc` and not have to invoke `ahc-cabal`. To make sure you didn't break anything, run `stack test`. In general, try to write new tests for non-trivial changes or features.
-
-If you compile the project with `ahc-cabal`, it will intermittently fail at the linking phase because `ahc-cabal` struggles with multiple executables due to a race condition in its parallel processing. If this happens, just run `ahc-cabal` again.
+In general, most development can be done without touching the bindings to Asterius. If you compile the project with `ahc-cabal`, it will intermittently fail at the linking phase because `ahc-cabal` struggles with multiple executables due to a race condition in its parallel processing. If this happens, just run `ahc-cabal` again.

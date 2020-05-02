@@ -37,6 +37,7 @@ A minimal flow is shown below, mostly copied from the asterius documentation. It
 
 ```bash
 username@hostname:~/my-dir$ docker run --rm -it -v $(pwd):/project -w /project terrorjack/asterius
+asterius@hostname:/project$ ahc-cabal update
 asterius@hostname:/project$ ahc-cabal new-install --constraint "plzwrk +plzwrk-enable-asterius" --installdir <inst-dir> <exec-name>
 asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --browser --bundle
 ```

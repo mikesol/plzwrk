@@ -27,6 +27,27 @@ module Web.Framework.Plzwrk
   , plzwrk'
   , plzwrk'_
   , OldStuff(..)
+  -- util
+  , (@=)
+  , (<.>)
+  , wStyle
+  , wStyle'
+  , wStyles
+  , wStyles'
+  , wClass
+  , wClass'
+  , wClasses
+  , wClasses'
+  , wOnClick
+  , wOnClick'
+  , wId
+  , wId'
+  , wOnInput
+  , wOnInput'
+  , wAttr
+  , wAttr'
+  , wAttrs
+  , wAttrs'
   )
 where
 
@@ -36,3 +57,4 @@ import           Prelude                 hiding ( div )
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 import           Web.Framework.Plzwrk.Domify
+import           Web.Framework.Plzwrk.Util

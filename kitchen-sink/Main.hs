@@ -51,32 +51,24 @@ main = do
           )
           <$> _myNoun
   -- here is our input
-  let
-    inputF = input
-      (pure dats'
-        { _simple   = singleton "type" "text"
-        , _style    = singleton "box-sizing" "content-box"
-        , _handlers = singleton
-                        "input"
-                        (\e s -> do
-                          opq <- (getOpaque browser) e "target"
-                          v   <- maybe (pure Nothing)
-                                       (\y -> (getString browser) y "value")
-                                       opq
-                          return $ maybe s (\q -> s { _myNoun = q }) v
-                        )
-        }
-      )
-      []
+  let inputF = input
+        (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
+          (\e s -> do
+            opq <- (getOpaque browser) e "target"
+            v <- maybe (pure Nothing) (\y -> (getString browser) y "value") opq
+            return $ maybe s (\q -> s { _myNoun = q }) v
+          )
+        )
+        []
   -- and here is our main div
   let
     mainDivF =
       (\abstractToConcrete name -> T.main'_
           [ section
-              (pure dats' { _class = S.singleton "content" })
+              (wClass "content")
               [ h1__ "Aphorism Machine"
               , ul
-                (pure dats' { _class = S.singleton "res" })
+                (wClass "res")
                 (fmap
                   (\(abs, conc) ->
                     (li__ (concat [abs, " is like", a_n conc, conc]))
@@ -86,57 +78,38 @@ main = do
               , br
               , surpriseF
               , div
-                (pure dats'
-                  { _style = fromList
-                               [("width", "100%"), ("display", "inline-block")]
-                  }
-                )
+                (wStyles [("width", "100%"), ("display", "inline-block")])
                 [ button
-                  (pure dats'
-                    { _simple   = singleton "id" "incr"
-                    , _class    = S.singleton "dim"
-                    , _handlers = singleton
-                      "click"
-                      (\_ s -> do
-                        (consoleLog browser)
-                          $  "Here is the current state "
-                          <> show s
-                        concept    <- randAbstract (random01 browser)
-                        comparedTo <- randConcrete (random01 browser)
-                        let
-                          newS = s
-                            { _abstractToConcrete = (concept, comparedTo)
-                                                      : abstractToConcrete
-                            }
-                        (consoleLog browser)
-                          $  "Here is the new state "
-                          <> show newS
-                        return $ newS
-                      )
-                    }
+                  (wId "incr" <.> wClass "dim" <.> wOnClick
+                    (\_ s -> do
+                      (consoleLog browser)
+                        $  "Here is the current state "
+                        <> show s
+                      concept    <- randAbstract (random01 browser)
+                      comparedTo <- randConcrete (random01 browser)
+                      let
+                        newS = s
+                          { _abstractToConcrete = (concept, comparedTo)
+                                                    : abstractToConcrete
+                          }
+                      (consoleLog browser) $ "Here is the new state " <> show newS
+                      return $ newS
+                    )
                   )
                   [txt "More aphorisms"]
                 , button
-                  (pure dats'
-                    { _simple   = singleton "id" "decr"
-                    , _class    = S.singleton "dim"
-                    , _handlers = singleton
-                      "click"
-                      (\_ s -> pure $ s
-                        { _abstractToConcrete = if (null abstractToConcrete)
-                                                  then []
-                                                  else tail abstractToConcrete
-                        }
-                      )
-                    }
+                  (wId "decr" <.> wClass "dim" <.> wOnClick
+                    (\_ s -> pure $ s
+                      { _abstractToConcrete = if (null abstractToConcrete)
+                                                then []
+                                                else tail abstractToConcrete
+                      }
+                    )
                   )
                   [txt "Less aphorisms"]
                 ]
               , inputF
-              , p_
-                [ txt "Logged in as: "
-                , span (pure dats' { _class = S.singleton "username" }) [txt name]
-                ]
+              , p_ [txt "Logged in as: ", span (wClass "username") [txt name]]
               ]
           ]
         )

@@ -19,12 +19,12 @@ packages:
   original:
     hackage: binary-0.8.8.0
 - completed:
-    hackage: bytestring-0.10.8.1@sha256:ba427593b1c6a427aeb69622a0802ad2abb4ee3d4f586e1693036d3f0fcfe391,8921
+    hackage: bytestring-0.10.10.0@sha256:06b2e84f1bc9ab71a162c0ca9e88358dd6bbe5cb7fdda2d6d34b6863c367ec95,8944
     pantry-tree:
       size: 2788
-      sha256: 97850196e2d9cba1912fd052b3fe3fc4f3167c934afe2fb18ad79d68a6160b66
+      sha256: 0c8345618e3d7440989d5001ff57d01896548195338bf7a70d8453710a43418b
   original:
-    hackage: bytestring-0.10.8.1
+    hackage: bytestring-0.10.10.0
 - completed:
     hackage: containers-0.6.2.1@sha256:bbc3d2d5eef59a5d26383fb4b727c968390f2b6e9bd413d29aa875175bb16f8b,2460
     pantry-tree:
@@ -61,12 +61,12 @@ packages:
   original:
     hackage: mtl-2.2.2
 - completed:
-    hackage: neat-interpolation-0.3.2.1@sha256:211a85c9f37223b02244d470b19087bf86f671cd0917aa50d1e6ca06b327b0c7,2676
+    hackage: neat-interpolation-0.5.1@sha256:19af6ecc2802c6e94655f91e74aa19dc1e02a73ed7b1292c0fa3f082daaf7124,2989
     pantry-tree:
-      size: 448
-      sha256: f73d32232fb4ea0f2215496554dbd1b10e88b7763c76c4cd5d6eaa1db0dc4a2c
+      size: 566
+      sha256: c76046884e00551925c43abda1dc25585a9b90a353c7203a62852df285c0840c
   original:
-    hackage: neat-interpolation-0.3.2.1
+    hackage: neat-interpolation-0.5.1
 - completed:
     hackage: random-1.1@sha256:7b67624fd76ddf97c206de0801dc7e888097e9d572974be9b9ea6551d76965df,1777
     pantry-tree:

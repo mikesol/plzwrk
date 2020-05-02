@@ -43,6 +43,7 @@ library
     , Web.Framework.Plzwrk.Base
     , Web.Framework.Plzwrk.Browserful
     , Web.Framework.Plzwrk.Domify
+    , Web.Framework.Plzwrk.Util
   hs-source-dirs:
       src
   build-depends:
@@ -109,7 +110,7 @@ test-suite plzwrk-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , hspec >=2.7.0 && <2.7.1
+    , hspec >=2.7.0 && <2.7.2
     , mtl >=2.2.2 && <2.3
     , plzwrk
     , text >=1.2.3 && <1.3

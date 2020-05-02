@@ -24,9 +24,9 @@ cssToStyle css =
 -- data classes
 
 data Attributes s opq = MkAttributes
-  { _style   :: HashMap String String
-  , _class   :: Set String
-  , _simple  :: HashMap String String
+  { _style    :: HashMap String String
+  , _class    :: Set String
+  , _simple   :: HashMap String String
   , _handlers :: HashMap String (opq -> s -> IO s)
   }
 

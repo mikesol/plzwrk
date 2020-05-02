@@ -42,8 +42,7 @@ surprise =
     )
     <$> _myNoun
 
--- here is where we will input a noun
--- for our "surprise" aphorosim
+-- here is where we will input a noun for our "surprise" aphorosim
 writeSomethingConcrete browser = input
   (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
     (\e s -> do

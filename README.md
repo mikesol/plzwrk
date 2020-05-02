@@ -99,6 +99,8 @@ main :: IO ()
 
 ## When to use
 
+Plzwrk may be a good fit if you enjoy the benefits of programming in Haskell and would like to create a web app.
+
 Plzwrk is experimental. It is unfit for production and the syntax will change frequently, often in non-backward-compatible ways. We will try to document all of these changes in the [changelog](ChangeLog.md).
 
 Some alternatives to `plzwrk`:

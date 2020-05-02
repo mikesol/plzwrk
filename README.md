@@ -31,13 +31,13 @@ Also, add `plzwrk-X.Y.Z.?` to the `extra-deps` list of your `stack.yaml` file if
 
 ## Making a webpage
 
-`plzwrk` uses [Asterius](https://github.com/tweag/asterius) as its backend for web development. Compiling an application using `plzwrk` is no different than compiling an application using `ahc-cabal` and `ahc-dist` as described in the [Asterius documentation](https://asterius.netlify.app) with **one caveat**. You **must** use `-f plzwrk-enable-asterius` when running `ahc-cabal`.
+`plzwrk` uses [Asterius](https://github.com/tweag/asterius) as its backend for web development. Compiling an application using `plzwrk` is no different than compiling an application using `ahc-cabal` and `ahc-dist` as described in the [Asterius documentation](https://asterius.netlify.app) with **one caveat**. You **must** use `--constraint "plzwrk +plzwrk-enable-asterius"` when running `ahc-cabal`.
 
-A minimal flow is shown below, mostly copied from the asterius documentation. It assumes that you have a cabal-buildable project in the root directory. Note the use of the `-f plzwrk-enable-asterius` flag in the `ahc-cabal` step.
+A minimal flow is shown below, mostly copied from the asterius documentation. It assumes that you have a cabal-buildable project in the root directory. Note the use of the `--constraint "plzwrk +plzwrk-enable-asterius"` flag in the `ahc-cabal` step.
 
 ```bash
 username@hostname:~/my-dir$ docker run --rm -it -v $(pwd):/project -w /project terrorjack/asterius
-asterius@hostname:/project$ ahc-cabal new-install -f plzwrk-enable-asterius --installdir <inst-dir> <exec-name>
+asterius@hostname:/project$ ahc-cabal new-install --constraint "plzwrk +plzwrk-enable-asterius" --installdir <inst-dir> <exec-name>
 asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --browser --bundle
 ```
 

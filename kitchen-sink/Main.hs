@@ -47,58 +47,51 @@ writeSomethingConcrete browser = input
   (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
     (\e s -> do
       opq <- (getOpaque browser) e "target"
-      v <- maybe (pure Nothing) (\y -> (getString browser) y "value") opq
+      v   <- maybe (pure Nothing) (\y -> (getString browser) y "value") opq
       return $ maybe s (\q -> s { _myNoun = q }) v
     )
   )
   []
 
-aphorismList = (\a2c ->
-  ul'
-    (wClass "res")
-    (fmap
-      (\(a, c) ->
-        (li__ (concat [a, " is like", indefiniteArticle c, c]))
-      )
-      a2c
-    )) <$> _abstractToConcrete
-
-addAphorismButton browser = (\a2c ->
-  button'
-    (wId "incr" <.> wClass "dim" <.> wOnClick
-      (\_ s -> do
-        (consoleLog browser)
-          $  "Here is the current state "
-          <> show s
-        concept    <- randAbstract (random01 browser)
-        comparedTo <- randConcrete (random01 browser)
-        let
-          newS = s
-            { _abstractToConcrete = (concept, comparedTo) : a2c
-            }
-        (consoleLog browser) $ "Here is the new state " <> show newS
-        return $ newS
+aphorismList =
+  (\a2c -> ul'
+      (wClass "res")
+      (fmap (\(a, c) -> (li__ (concat [a, " is like", indefiniteArticle c, c])))
+            a2c
       )
     )
-    [txt "More aphorisms"]
-  ) <$> _abstractToConcrete
+    <$> _abstractToConcrete
 
-removeAphorismButton = (\a2c ->
-  button'
-    (wId "decr" <.> wClass "dim" <.> wOnClick
-      (\_ s -> pure $ s
-        { _abstractToConcrete = if null a2c
-                                  then []
-                                  else tail a2c
-        }
+addAphorismButton browser =
+  (\a2c -> button'
+      (wId "incr" <.> wClass "dim" <.> wOnClick
+        (\_ s -> do
+          (consoleLog browser) $ "Here is the current state " <> show s
+          concept    <- randAbstract (random01 browser)
+          comparedTo <- randConcrete (random01 browser)
+          let newS = s { _abstractToConcrete = (concept, comparedTo) : a2c }
+          (consoleLog browser) $ "Here is the new state " <> show newS
+          return $ newS
+        )
       )
+      [txt "More aphorisms"]
     )
-    [txt "Less aphorisms"]
-  ) <$> _abstractToConcrete
+    <$> _abstractToConcrete
 
-loginText = (\name ->
-    p'_ [txt "Logged in as: ", span (wClass "username") [txt name]]
-  ) <$> _name
+removeAphorismButton =
+  (\a2c -> button'
+      (wId "decr" <.> wClass "dim" <.> wOnClick
+        (\_ s ->
+          pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
+        )
+      )
+      [txt "Less aphorisms"]
+    )
+    <$> _abstractToConcrete
+
+loginText =
+  (\name -> p'_ [txt "Logged in as: ", span (wClass "username") [txt name]])
+    <$> _name
 
 main :: IO ()
 main = do
@@ -110,19 +103,15 @@ main = do
   (appendChild browser) _style _css
   (appendChild browser) _head _style
   -- and here is our main div
-  let
-    mainDivF = T.main_
+  let mainDivF = T.main_
         [ section
             (wClass "content")
             [ h1__ "Aphorism Machine"
             , aphorismList
             , br
             , surprise
-            , div
-              (wStyles [("width", "100%"), ("display", "inline-block")])
-              [ addAphorismButton browser
-              , removeAphorismButton
-              ]
+            , div (wStyles [("width", "100%"), ("display", "inline-block")])
+                  [addAphorismButton browser, removeAphorismButton]
             , writeSomethingConcrete browser
             , loginText
             ]

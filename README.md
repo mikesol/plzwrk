@@ -96,9 +96,14 @@ main :: IO ()
     print "Now I'm using the mock browser."
 ```
 
-## Using
+## When to use
 
-Plzwrk should be considered experimental. It is unfit for production and the syntax will change frequently, often in non-backward-compatible ways. There is a [changelog](ChangeLog.md).
+Plzwrk is experimental. It is unfit for production and the syntax will change frequently, often in non-backward-compatible ways. We will try to document all of these changes in the [changelog](ChangeLog.md).
+
+Some alternatives to `plzwrk`:
+
+- [Elm](https://elm-lang.org/), a delightful language for reliable web apps.
+- [Purescript react basic](https://github.com/lumihq/purescript-react-basic), an opinionated set of bindings to the React library, optimizing for the most basic use cases.
 
 ## Contributing
 

@@ -19,6 +19,9 @@ module Web.Framework.Plzwrk.Util
   , wAttr'
   , wAttrs
   , wAttrs'
+  , getTargetValue
+  , preventDefault
+  , blurTarget
   )
 where
 
@@ -28,6 +31,7 @@ import           Web.Framework.Plzwrk.Base      ( dats
                                                 , dats'
                                                 , Attributes(..)
                                                 )
+import           Web.Framework.Plzwrk.Browserful
 
 (@=) :: k -> v -> (k, v)
 k @= v = (k, v)
@@ -98,3 +102,20 @@ wAttrs kvs = (\s -> dats' { _simple = HM.fromList kvs })
 
 wAttrs' :: [(String, String)] -> Attributes s opq
 wAttrs' kvs = dats' { _simple = HM.fromList kvs }
+
+-----------------------------
+---- events
+
+getTargetValue :: Browserful jsval -> jsval -> IO (Maybe String)
+getTargetValue browser e = do
+  opq <- (getOpaque browser) e "target"
+  maybe (pure Nothing) (\y -> (getString browser) y "value") opq
+
+blurTarget :: Browserful jsval -> jsval -> IO ()
+blurTarget browser e = do
+  opq <- (getOpaque browser) e "target"
+  maybe (pure ()) (\y -> (invokeOn browser) y "blur") opq
+
+preventDefault :: Browserful jsval -> jsval -> IO ()
+preventDefault browser e = do
+  (invokeOn browser) e "preventDefault"

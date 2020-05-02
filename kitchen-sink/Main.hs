@@ -46,8 +46,7 @@ surprise =
 writeSomethingConcrete browser = input
   (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
     (\e s -> do
-      opq <- (getOpaque browser) e "target"
-      v   <- maybe (pure Nothing) (\y -> (getString browser) y "value") opq
+      v <- (getTargetValue browser) e
       return $ maybe s (\q -> s { _myNoun = q }) v
     )
   )
@@ -65,7 +64,8 @@ aphorismList =
 addAphorismButton browser =
   (\a2c -> button'
       (wId "incr" <.> wClass "dim" <.> wOnClick
-        (\_ s -> do
+        (\e s -> do
+          (blurTarget browser) e
           (consoleLog browser) $ "Here is the current state " <> show s
           concept    <- randAbstract (random01 browser)
           comparedTo <- randConcrete (random01 browser)
@@ -78,10 +78,11 @@ addAphorismButton browser =
     )
     <$> _abstractToConcrete
 
-removeAphorismButton =
+removeAphorismButton browser =
   (\a2c -> button'
       (wId "decr" <.> wClass "dim" <.> wOnClick
-        (\_ s ->
+        (\e s -> do
+          (blurTarget browser) e
           pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
         )
       )
@@ -111,7 +112,7 @@ main = do
             , br
             , surprise
             , div (wStyles [("width", "100%"), ("display", "inline-block")])
-                  [addAphorismButton browser, removeAphorismButton]
+                  [addAphorismButton browser, removeAphorismButton browser]
             , writeSomethingConcrete browser
             , loginText
             ]

@@ -48,6 +48,9 @@ module Web.Framework.Plzwrk
   , wAttr'
   , wAttrs
   , wAttrs'
+  , getTargetValue
+  , preventDefault
+  , blurTarget
   )
 where
 

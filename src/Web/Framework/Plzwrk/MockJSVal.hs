@@ -1,3 +1,16 @@
+{-|
+Module      : Web.Framework.Plzwrk.MockJSVal
+Description : Mock browser for testing
+Copyright   : (c) Mike Solomon 2020
+License     : GPL-3
+Maintainer  : mike@meeshkan.com
+Stability   : experimental
+Portability : POSIX, Windows
+
+This module exports a mock browser called
+@defaultInternalBrowser@ used in plzwrk's tests
+and that can be used in your unit tests as well.
+-}
 module Web.Framework.Plzwrk.MockJSVal
   ( MockJSVal(..)
   , makeMockBrowser

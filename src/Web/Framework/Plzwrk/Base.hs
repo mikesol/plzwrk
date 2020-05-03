@@ -19,27 +19,16 @@ cssToStyle :: (HM.HashMap String String) -> String
 cssToStyle css =
   (intercalate ";" $ fmap (\(x, y) -> x <> ":" <> y) (HM.toList css))
 
--- data classes
-
 
 -- |Attributes for a DOM Node.
-
 -- Attributes are parameterized by two types
-
 -- * @s@ - the type of the state
-
 -- * @opq@ - the type of an opaque object in JavaScript
-
 --
-
 -- You will rarely need to instantiate @Attributes@ yourself,
-
 -- as it is easier to work with utility functions like 'wId',
-
 -- 'wStyle' etc that produce Applicative Functors with signature
-
 -- @(s -> Attributes s opq)@. These AFs are used in the 'Node' data.
-
 data Attributes s opq = MkAttributes
   { _style    :: HM.HashMap String String
   , _class    :: S.Set String
@@ -61,30 +50,18 @@ instance Show (Attributes s opq) where
       <> show __simple
       <> ")"
 
--- | A DOM node.
-
+-- |A DOM node.
 -- The easiest way to create nodes is using tags such as
-
 -- 'Web.Framework.Plzwrk.Util.span' or 'Web.Framework.Plzwrk.br'.
-
 -- Nodes can be created for arbitrary tags using the 'Element'
-
 -- constructor.
-
 --
-
 -- Node is parameterized by two types
-
 -- * @s@ - the type of the state
-
 -- * @opq@ - the type of an opaque object in JavaScript
-
 --
-
 -- Note that nodes, when passed as an arguemnt to 'plzwrk', need
-
 -- to be Applicative Functors in the form @(s -> Node s opq)@.
-
 data Node s opq = Element
     { _elt_tag :: String
     , _elt_attrs :: (s -> Attributes s opq)
@@ -143,9 +120,8 @@ _toHTML (HydratedElement tag attrs ch) =
 _toHTML (HydratedTextNode txt) = txt
 
 -- |Converts a Node to HTML.
-
 toHTML
   :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
-  -> String
+  -> String -- ^ The resulting HTML
 toHTML domF state = _toHTML (hydrate state domF)

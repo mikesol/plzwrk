@@ -3,7 +3,7 @@
 
 {-|
 Module      : Web.Framework.Plzwrk.Tag
-Description : Base functions for plzwrk
+Description : Useful tags like div and img
 Copyright   : (c) Mike Solomon 2020
 License     : GPL-3
 Maintainer  : mike@meeshkan.com

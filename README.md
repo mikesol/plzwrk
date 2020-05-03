@@ -93,7 +93,7 @@ Plzwrk supports static site rendering. To do this, you have to compile your site
 
 When compiling using `ahc-cabal`, make sure to use the `plzwrkSSR` family of functions. These functions will look for pre-existing elements in the DOM and attach event listeners to them instead of creating elements from scratch. Additionally, if the static website needs to be initialized with data (ie using the result of an HTTP response made on the server), you'll need to pass these values dynamically to the function that calls `plzwrkSSR`. You can do this using the `foreign export` syntax as described in the [Asterius documentation](https://asterius.netlify.app/jsffi.html#jsffi-static-exports).
 
-When compiling with `cabal`, you'll likely be creating a `text/html` document or a server that serves your website as `text/html`. Regardless of the approach, you should use `toHTML` to create the part of the initial DOM controlled by plzwrk.  Also, in your HTML, make sure to include a link to the script(s) produced by `ahc-dist` and, if needed, make sure to call your exported functions.
+When compiling with `cabal`, you'll likely be using it to output an HTML document or build a server that serves your website as `text/html`. Regardless of the approach, you should use `toHTML` to create the part of the initial DOM controlled by plzwrk.  Also, in your HTML, make sure to include a link to the script(s) produced by `ahc-dist` and, if needed, make sure to call your exported functions.
 
 ## Testing your code
 

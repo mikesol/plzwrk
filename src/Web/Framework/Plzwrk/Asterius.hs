@@ -1,3 +1,20 @@
+{-|
+Module      : Web.Framework.Plzwrk.Asterius
+Description : Asterius bindings for plzwrk
+Copyright   : (c) Mike Solomon 2020
+License     : GPL-3
+Maintainer  : mike@meeshkan.com
+Stability   : experimental
+Portability : POSIX, Windows
+
+This module exports a single function called @asteriusBrowser@
+that you can use to build your DOM with asterius (see the
+examples in the README.md). Unfortunately, due to the way
+cabal compiles this documentation, it does not appear on
+this page. Instead, a dummy function called @ignoreMe@ appears.
+This is because @asteriusBrowser@ can only be created by using
+`ahc-cabal`, and haddock uses `cabal` as a default.
+-}
 {-# LANGUAGE CPP #-}
 #if defined(PLZWRK_ENABLE_ASTERIUS)
 {-# LANGUAGE InterruptibleFFI  #-}

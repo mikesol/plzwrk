@@ -85,6 +85,16 @@ To handle events (ie extract values from input events, etc) you can use one of t
 
 > If you are using the Asterius backend, callback functions are still quite fragile and subject to breakage. The less third-party libraries you use in them, the better. For example, avoid using `Data.Text` and `aeson` if possible.
 
+## Static site rendering
+
+Plzwrk supports static site rendering. To do this, you have to compile your site twice:
+- once using `ahc-cabal` using the procedure above to create any JavaScript you need (ie event handlers), and
+- once using plain old `cabal` to create the inital HTML.
+
+When compiling using `ahc-cabal`, make sure to use the `plzwrkSSR` family of functions. These functions will look for pre-existing elements in the DOM and attach event listeners to them instead of creating elements from scratch. Additionally, if the static website needs to be initialized with data (ie using the result of an HTTP response made on the server), you'll need to pass these values dynamically to the function that calls `plzwrkSSR`. You can do this using the `foreign export` syntax as described in the [Asterius documentation](https://asterius.netlify.app/jsffi.html#jsffi-static-exports).
+
+When compiling with `cabal`, you'll likely be creating a `text/html` document or a server that serves your website as `text/html`. Regardless of the approach, you should use `toHTML` to create the part of the initial DOM controlled by plzwrk.  Also, in your HTML, make sure to include a link to the script(s) produced by `ahc-dist` and, if needed, make sure to call your exported functions.
+
 ## Testing your code
 
 Plzwrk comes with a mock browser that can act as a drop-in replacement for your browser. Use this in your tests.
@@ -110,9 +120,4 @@ Some alternatives to `plzwrk`:
 
 ## Contributing
 
-Thanks for your interest in contributing! Here is a small list  of things I'd really appreciate help with:
-
-- Static site rendering
-- Automatic code splitting
-- Hot reloading
-- Documentation
+Thanks for your interest in contributing! If you have a bug or feature request, please file an [issue](https://github.com/meeshkan/plzwrk/issues), or if you'd like to hack at the code base, please propose a [pull request](https://github.com/meeshkan/plzwrk/issues).

@@ -17,7 +17,7 @@ module Web.Framework.Plzwrk
   ( plzwrk
   , plzwrk'
   , plzwrk'_
-  , plzwrkSSRjs
+  , plzwrkSSR
   , toHTML
   , Node(..)
   , Attributes(..)

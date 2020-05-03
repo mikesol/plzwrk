@@ -2,7 +2,9 @@ module Web.Framework.Plzwrk.Domify
   ( plzwrk
   , plzwrk'
   , plzwrk'_
-  , plzwrkSSRjs
+  , plzwrkSSR
+  , plzwrkSSR'
+  , plzwrkSSR'_
   )
 where
 
@@ -444,13 +446,13 @@ plzwrk domF state env nodeId = void $ _plzwrk True domF state env nodeId
 -- |A variant of plzwrk that acts on a node already rendered to the DOM,
 -- ie by server-side rendering. It assumes the node has been rendered
 -- with the same state-to-node function as well as the same state.
-plzwrkSSRjs
+plzwrkSSR
   :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
   -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
   -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
   -> IO () -- ^ Returns nothing
-plzwrkSSRjs domF state env nodeId = void $ _plzwrk False domF state env nodeId
+plzwrkSSR domF state env nodeId = void $ _plzwrk False domF state env nodeId
 
 _plzwrk'
   :: Bool
@@ -466,6 +468,14 @@ _plzwrk' cleanDOM domF state env = do
 plzwrk' :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
 plzwrk' domF state env = void $ _plzwrk' True domF state env
 
+-- |A variation of plzwrk that inserts the node as a child of the document's body.
+plzwrkSSR' :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
+plzwrkSSR' domF state env = void $ _plzwrk' False domF state env
+
 -- |A variation of plzwrk that takes no state.
 plzwrk'_ :: (() -> Node () jsval) -> Browserful jsval -> IO ()
 plzwrk'_ domF env = plzwrk' domF () env
+
+-- |A variation of plzwrkSSR that takes no state.
+plzwrkSSR'_ :: (() -> Node () jsval) -> Browserful jsval -> IO ()
+plzwrkSSR'_ domF env = plzwrkSSR' domF () env

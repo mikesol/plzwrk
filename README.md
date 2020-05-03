@@ -85,9 +85,9 @@ To handle events (ie extract values from input events, etc) you can use one of t
 
 > If you are using the Asterius backend, callback functions are still quite fragile and subject to breakage. The less third-party libraries you use in them, the better. For example, avoid using `Data.Text` and `aeson` if possible.
 
-## Static site rendering
+## Server side rendering
 
-Plzwrk supports static site rendering. To do this, you have to compile your site twice:
+Plzwrk supports server side rendering. To do this, you have to compile your site twice:
 - once using `ahc-cabal` using the procedure above to create any JavaScript you need (ie event handlers), and
 - once using plain old `cabal` to create the inital HTML.
 

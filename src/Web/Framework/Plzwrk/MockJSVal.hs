@@ -100,36 +100,40 @@ _ptr (MockJSString   a _ _   ) = a
 _ptr (MockJSNumber   a _ _   ) = a
 _ptr (MockJSArray    a _ _   ) = a
 
-_addEventListener
+_eventTargetAddEventListener
   :: MockJSVal
   -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
-_addEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
+_eventTargetAddEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
   = pure
     $ ( MockAttributes atts $ insert evt fn lstns
       , logn <> [ListenerReceived evt m]
       , logm <> [AddedAsListenerTo n]
       )
-_addEventListener _ _ _ = error "Can only add event listener to element"
+_eventTargetAddEventListener _ _ _ =
+  error "Can only add event listener to element"
 
-_setAttribute :: MockJSVal -> String -> String -> IO (MockAttributes, [LogEvent])
-_setAttribute (MockJSElement n _ (MockAttributes atts lstns) _ logn) nm attr =
-  pure
+_elementSetAttribute
+  :: MockJSVal -> String -> String -> IO (MockAttributes, [LogEvent])
+_elementSetAttribute (MockJSElement n _ (MockAttributes atts lstns) _ logn) nm attr
+  = pure
     $ ( MockAttributes (insert nm attr atts) lstns
       , logn <> [AttributeReceived nm attr]
       )
-_setAttribute _ _ _ = error "Can only add event listener to element"
+_elementSetAttribute _ _ _ = error "Can only add event listener to element"
 
-_appendChild
+_nodeAppendChild
   :: MockJSVal -> MockJSVal -> IO ([MockJSVal], [LogEvent], [LogEvent])
-_appendChild (MockJSElement n _ _ kids logn) kid@(MockJSElement m _ _ _ logm) =
-  pure $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
-_appendChild (MockJSElement n _ _ kids logn) kid@(MockJSTextNode m _ logm) =
-  pure $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
-_appendChild _ _ = error "Can only append element to element"
+_nodeAppendChild (MockJSElement n _ _ kids logn) kid@(MockJSElement m _ _ _ logm)
+  = pure
+    $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
+_nodeAppendChild (MockJSElement n _ _ kids logn) kid@(MockJSTextNode m _ logm)
+  = pure
+    $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
+_nodeAppendChild _ _ = error "Can only append element to element"
 
-__removeChild
+__nodeRemoveChild
   :: Int
   -> [MockJSVal]
   -> [LogEvent]
@@ -137,7 +141,7 @@ __removeChild
   -> Int
   -> [LogEvent]
   -> IO ([MockJSVal], [LogEvent], [LogEvent])
-__removeChild n kids logn kid m logm = maybe
+__nodeRemoveChild n kids logn kid m logm = maybe
   (error ("Existing item " <> show m <> " not child of " <> show n))
   (\x ->
     pure
@@ -148,20 +152,20 @@ __removeChild n kids logn kid m logm = maybe
   )
   (elemIndex (_ptr kid) (fmap _ptr kids))
 
-_removeChild
+_nodeRemoveChild
   :: MockJSVal -> MockJSVal -> IO ([MockJSVal], [LogEvent], [LogEvent])
-_removeChild (MockJSElement n _ _ kids logn) kid@(MockJSElement m _ _ _ logm) =
-  __removeChild n kids logn kid m logm
-_removeChild (MockJSElement n _ _ kids logn) kid@(MockJSTextNode m _ logm) =
-  __removeChild n kids logn kid m logm
-_removeChild _ _ = error "Can only remove element from element"
+_nodeRemoveChild (MockJSElement n _ _ kids logn) kid@(MockJSElement m _ _ _ logm)
+  = __nodeRemoveChild n kids logn kid m logm
+_nodeRemoveChild (MockJSElement n _ _ kids logn) kid@(MockJSTextNode m _ logm)
+  = __nodeRemoveChild n kids logn kid m logm
+_nodeRemoveChild _ _ = error "Can only remove element from element"
 
-_removeEventListener
+_eventTargetRemoveEventListener
   :: MockJSVal
   -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
-_removeEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
+_eventTargetRemoveEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
   = maybe
     (error ("Listener " <> show m <> " not child of " <> show n))
     (\x ->
@@ -172,9 +176,10 @@ _removeEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt 
           )
     )
     (lookup evt lstns)
-_removeEventListener _ _ _ = error "Can only add event listener to element"
+_eventTargetRemoveEventListener _ _ _ =
+  error "Can only add event listener to element"
 
-_insertBeforeInternal
+_nodeInsertBeforeInternal
   :: Int
   -> [MockJSVal]
   -> [LogEvent]
@@ -190,7 +195,7 @@ _insertBeforeInternal
        , [LogEvent]
        , [LogEvent]
        )
-_insertBeforeInternal n kids logn newI m logm existingI l logl = maybe
+_nodeInsertBeforeInternal n kids logn newI m logm existingI l logl = maybe
   (error ("Existing item " <> show l <> " not child of " <> show n))
   (\x ->
     pure
@@ -203,53 +208,55 @@ _insertBeforeInternal n kids logn newI m logm existingI l logl = maybe
   (elemIndex (_ptr existingI) (fmap _ptr kids))
 
 
-_insertBefore
+_nodeInsertBefore
   :: MockJSVal
   -> MockJSVal
   -> MockJSVal
   -> IO ([MockJSVal], [LogEvent], [LogEvent], [LogEvent])
-_insertBefore (MockJSElement n _ _ kids logn) newI@(MockJSElement m _ _ _ logm) existingI@(MockJSElement l _ _ _ logl)
-  = _insertBeforeInternal n kids logn newI m logm existingI l logl
-_insertBefore (MockJSElement n _ _ kids logn) newI@(MockJSTextNode m _ logm) existingI@(MockJSElement l _ _ _ logl)
-  = _insertBeforeInternal n kids logn newI m logm existingI l logl
-_insertBefore (MockJSElement n _ _ kids logn) newI@(MockJSElement m _ _ _ logm) existingI@(MockJSTextNode l _ logl)
-  = _insertBeforeInternal n kids logn newI m logm existingI l logl
-_insertBefore (MockJSElement n _ _ kids logn) newI@(MockJSTextNode m _ logm) existingI@(MockJSTextNode l _ logl)
-  = _insertBeforeInternal n kids logn newI m logm existingI l logl
-_insertBefore _ _ _ = error "Can only append element to element"
+_nodeInsertBefore (MockJSElement n _ _ kids logn) newI@(MockJSElement m _ _ _ logm) existingI@(MockJSElement l _ _ _ logl)
+  = _nodeInsertBeforeInternal n kids logn newI m logm existingI l logl
+_nodeInsertBefore (MockJSElement n _ _ kids logn) newI@(MockJSTextNode m _ logm) existingI@(MockJSElement l _ _ _ logl)
+  = _nodeInsertBeforeInternal n kids logn newI m logm existingI l logl
+_nodeInsertBefore (MockJSElement n _ _ kids logn) newI@(MockJSElement m _ _ _ logm) existingI@(MockJSTextNode l _ logl)
+  = _nodeInsertBeforeInternal n kids logn newI m logm existingI l logl
+_nodeInsertBefore (MockJSElement n _ _ kids logn) newI@(MockJSTextNode m _ logm) existingI@(MockJSTextNode l _ logl)
+  = _nodeInsertBeforeInternal n kids logn newI m logm existingI l logl
+_nodeInsertBefore _ _ _ = error "Can only append element to element"
 
-_getTag :: MockJSVal -> IO String
-_getTag (MockJSElement _ tag _ _ _) = return tag
-_getTag _                           = error "Can only get tag of element"
+_elementTagName :: MockJSVal -> IO String
+_elementTagName (MockJSElement _ tag _ _ _) = return tag
+_elementTagName _ = error "Can only get tag of element"
 
-_textContent :: MockJSVal -> IO String
-_textContent (MockJSTextNode _ txt _) = return txt
-_textContent _ = error "Can only get text content of text node"
+_nodeTextContent :: MockJSVal -> IO String
+_nodeTextContent (MockJSTextNode _ txt _) = return txt
+_nodeTextContent _ = error "Can only get text content of text node"
 
 
-_getChildren :: MockJSVal -> IO [Int]
-_getChildren (MockJSElement _ _ _ kids _) = return $ fmap _ptr kids
-_getChildren _ = error "Can only get children of element"
+_nodeChildNodes :: MockJSVal -> IO [Int]
+_nodeChildNodes (MockJSElement _ _ _ kids _) = return $ fmap _ptr kids
+_nodeChildNodes _ = error "Can only get children of element"
 
-_freeCallback :: MockJSVal -> IO [LogEvent]
-_freeCallback (MockJSFunction n _ log) = pure (log <> [FreeCallback n])
-_freeCallback _                        = error "Can only free function"
+__freeCallback :: MockJSVal -> IO [LogEvent]
+__freeCallback (MockJSFunction n _ log) = pure (log <> [FreeCallback n])
+__freeCallback _                        = error "Can only free function"
 
 dummyClick :: MockJSVal -> IO ()
 -- todo give real number
 
+
 dummyClick (MockJSFunction _ f _) = f $ MockMouseEvent (-1)
 
 
-_click :: MockJSVal -> IO ()
-_click (MockJSElement _ _ (MockAttributes _ evts) _ _) = do
+_htmlElemenetClick :: MockJSVal -> IO ()
+_htmlElemenetClick (MockJSElement _ _ (MockAttributes _ evts) _ _) = do
   let oc = lookup "click" evts
   maybe (pure ()) (\x -> dummyClick x) oc
 
-_click _ = error "Can only free function"
+_htmlElemenetClick _ = error "Can only free function"
 
 
 --------------
+
 
 
 data MockBrowserInternal = MockBrowserInternal
@@ -280,32 +287,33 @@ wrt env elt v = do
   let bz = unBrowser r
   writeIORef env $ r { unBrowser = insert elt v bz }
 
-_'addEventListener :: IORef MockBrowserInternal -> Int -> String -> Int -> IO ()
-_'addEventListener env elt evt fn = do
+_'eventTargetAddEventListener
+  :: IORef MockBrowserInternal -> Int -> String -> Int -> IO ()
+_'eventTargetAddEventListener env elt evt fn = do
   _elt                            <- look env elt
   _fn                             <- look env fn
-  (newAttrs, newLogElt, newLogFn) <- _addEventListener _elt evt _fn
+  (newAttrs, newLogElt, newLogFn) <- _eventTargetAddEventListener _elt evt _fn
   wrt env elt $ _withNewLog (_withNewAttrs _elt newAttrs) newLogElt
   wrt env fn $ _withNewLog _fn newLogFn
 
-_'appendChild :: IORef MockBrowserInternal -> Int -> Int -> IO ()
-_'appendChild env parent kid = do
+_'nodeAppendChild :: IORef MockBrowserInternal -> Int -> Int -> IO ()
+_'nodeAppendChild env parent kid = do
   _parent                            <- look env parent
   _kid                               <- look env kid
-  (newKids, newLogParent, newLogKid) <- _appendChild _parent _kid
+  (newKids, newLogParent, newLogKid) <- _nodeAppendChild _parent _kid
   wrt env parent $ _withNewLog (_withNewKids _parent newKids) newLogParent
   wrt env kid $ _withNewLog _kid newLogKid
 
-_'createElement :: IORef MockBrowserInternal -> String -> IO Int
-_'createElement env tg = do
+_'documentCreateElement :: IORef MockBrowserInternal -> String -> IO Int
+_'documentCreateElement env tg = do
   i <- incr env
   let elt =
         MockJSElement i tg (MockAttributes empty empty) [] [CreatedElement i]
   wrt env i elt
   return i
 
-_'random01 :: IORef MockBrowserInternal -> IO Double
-_'random01 _ = pure 0.5
+_'mathRandom :: IORef MockBrowserInternal -> IO Double
+_'mathRandom _ = pure 0.5
 
 _'consoleLog :: IORef MockBrowserInternal -> String -> IO ()
 _'consoleLog _ txt = print txt
@@ -314,96 +322,108 @@ _'consoleLog' :: IORef MockBrowserInternal -> Int -> IO ()
 _'consoleLog' _ v = print (show v)
 
 
-_'createTextNode :: IORef MockBrowserInternal -> String -> IO Int
-_'createTextNode env txt = do
+_'documentCreateTextNode :: IORef MockBrowserInternal -> String -> IO Int
+_'documentCreateTextNode env txt = do
   i <- incr env
   let elt = MockJSTextNode i txt [CreatedTextNode i]
   wrt env i elt
   return i
 
-_'getString :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe String)
-_'getString env _ _ = pure Nothing -- not implemented yet
-
-_'getBool :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Bool)
-_'getBool env _ _ = pure Nothing -- not implemented yet
-
-_'getInt :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
-_'getInt env _ _ = pure Nothing -- not implemented yet
-
-_'getDouble :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Double)
-_'getDouble env _ _ = pure Nothing -- not implemented yet
-
-_'getOpaque :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
-_'getOpaque env _ _ = pure Nothing -- not implemented yet
+_'getPropertyAsString
+  :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe String)
+_'getPropertyAsString env _ _ = pure Nothing -- not implemented yet
 
 
-_'invokeOn :: IORef MockBrowserInternal -> Int -> String -> IO ()
-_'invokeOn env _ _ = pure () -- not implemented yet
+_'getPropertyAsBool
+  :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Bool)
+_'getPropertyAsBool env _ _ = pure Nothing -- not implemented yet
 
 
-_'getTag :: IORef MockBrowserInternal -> Int -> IO String
-_'getTag env elt = do
+_'getPropertyAsInt
+  :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
+_'getPropertyAsInt env _ _ = pure Nothing -- not implemented yet
+
+
+_'getPropertyAsDouble
+  :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Double)
+_'getPropertyAsDouble env _ _ = pure Nothing -- not implemented yet
+
+
+_'getPropertyAsOpaque
+  :: IORef MockBrowserInternal -> Int -> String -> IO (Maybe Int)
+_'getPropertyAsOpaque env _ _ = pure Nothing -- not implemented yet
+
+
+
+_'invokeOn0 :: IORef MockBrowserInternal -> Int -> String -> IO Int
+_'invokeOn0 env _ _ = pure 0 -- not implemented yet
+
+
+
+_'elementTagName :: IORef MockBrowserInternal -> Int -> IO String
+_'elementTagName env elt = do
   _elt <- look env elt
-  _getTag _elt
+  _elementTagName _elt
 
-_'getChildren :: IORef MockBrowserInternal -> Int -> IO [Int]
-_'getChildren env elt = do
+_'nodeChildNodes :: IORef MockBrowserInternal -> Int -> IO [Int]
+_'nodeChildNodes env elt = do
   _elt <- look env elt
-  _getChildren _elt
+  _nodeChildNodes _elt
 
-_'textContent :: IORef MockBrowserInternal -> Int -> IO String
-_'textContent env elt = do
+_'nodeTextContent :: IORef MockBrowserInternal -> Int -> IO String
+_'nodeTextContent env elt = do
   _elt <- look env elt
-  _textContent _elt
+  _nodeTextContent _elt
 
 _'freeCallback :: IORef MockBrowserInternal -> Int -> IO ()
 _'freeCallback env fn = do
   _fn    <- look env fn
-  newLog <- _freeCallback _fn
+  newLog <- __freeCallback _fn
   wrt env fn $ _withNewLog _fn newLog
 
-_'click :: IORef MockBrowserInternal -> Int -> IO ()
-_'click env elt = do
+_'htmlElemenetClick :: IORef MockBrowserInternal -> Int -> IO ()
+_'htmlElemenetClick env elt = do
   _elt <- look env elt
-  _click _elt
+  _htmlElemenetClick _elt
 
 idEq :: String -> MockJSVal -> Bool
 idEq txt (MockJSElement _ _ (MockAttributes atts _) _ _) =
   Just txt == (lookup "id" atts)
 idEq _ _ = False
 
-_'getBody :: IORef MockBrowserInternal -> IO Int
-_'getBody ref = do
+_'documentBody :: IORef MockBrowserInternal -> IO Int
+_'documentBody ref = do
   mb <- readIORef ref
   let browser = unBrowser mb
   pt <- maybe (error "No body.") (\x -> pure $ _ptr x) $ lookup 0 browser
   return pt
 
-_'getHead :: IORef MockBrowserInternal -> IO Int
-_'getHead ref = pure (-1) -- need to implement in mock?
+_'documentHead :: IORef MockBrowserInternal -> IO Int
+_'documentHead ref = pure (-1) -- need to implement in mock?
 
-_getElementByIdInternal :: MockJSVal -> String -> [Int]
-_getElementByIdInternal jsv@(MockJSElement _ _ _ ch _) txt = if (idEq txt jsv)
-  then [_ptr jsv]
-  else (foldr (++) [] $ fmap (\x -> _getElementByIdInternal x txt) ch)
-_getElementByIdInternal _ _ = []
 
-_'getElementById :: IORef MockBrowserInternal -> String -> IO (Maybe Int)
-_'getElementById env txt = do
-  body  <- _'getBody env
+_documentGetElementByIdInternal :: MockJSVal -> String -> [Int]
+_documentGetElementByIdInternal jsv@(MockJSElement _ _ _ ch _) txt =
+  if (idEq txt jsv)
+    then [_ptr jsv]
+    else (foldr (++) [] $ fmap (\x -> _documentGetElementByIdInternal x txt) ch)
+_documentGetElementByIdInternal _ _ = []
+
+_'documentGetElementById
+  :: IORef MockBrowserInternal -> String -> IO (Maybe Int)
+_'documentGetElementById env txt = do
+  body  <- _'documentBody env
   _body <- look env body
-  let elts = _getElementByIdInternal _body txt
+  let elts = _documentGetElementByIdInternal _body txt
   return $ if (null elts) then (Nothing) else (Just $ head elts)
 
-_'insertBefore :: IORef MockBrowserInternal -> Int -> Int -> Int -> IO ()
-_'insertBefore env parent newItem existingItem = do
+_'nodeInsertBefore :: IORef MockBrowserInternal -> Int -> Int -> Int -> IO ()
+_'nodeInsertBefore env parent newItem existingItem = do
   _parent       <- look env parent
   _newItem      <- look env newItem
   _existingItem <- look env existingItem
-  (newKids, newLogParent, newLogNewItem, newLogExistingItem) <- _insertBefore
-    _parent
-    _newItem
-    _existingItem
+  (newKids, newLogParent, newLogNewItem, newLogExistingItem) <-
+    _nodeInsertBefore _parent _newItem _existingItem
   wrt env parent $ _withNewLog (_withNewKids _parent newKids) newLogParent
   wrt env newItem $ _withNewLog _newItem newLogNewItem
   wrt env existingItem $ _withNewLog _existingItem newLogExistingItem
@@ -415,57 +435,60 @@ _'makeHaskellCallback env cb = do
   wrt env i elt
   return i
 
-_'removeChild :: IORef MockBrowserInternal -> Int -> Int -> IO ()
-_'removeChild env parent kid = do
+_'nodeRemoveChild :: IORef MockBrowserInternal -> Int -> Int -> IO ()
+_'nodeRemoveChild env parent kid = do
   _parent                            <- look env parent
   _kid                               <- look env kid
-  (newKids, newLogParent, newLogKid) <- _removeChild _parent _kid
+  (newKids, newLogParent, newLogKid) <- _nodeRemoveChild _parent _kid
   wrt env parent $ _withNewLog (_withNewKids _parent newKids) newLogParent
   wrt env kid $ _withNewLog _kid newLogKid
 
-_'removeEventListener
+_'eventTargetRemoveEventListener
   :: IORef MockBrowserInternal -> Int -> String -> Int -> IO ()
-_'removeEventListener env elt evt fn = do
+_'eventTargetRemoveEventListener env elt evt fn = do
   _elt                            <- look env elt
   _fn                             <- look env fn
-  (newAttrs, newLogElt, newLogFn) <- _removeEventListener _elt evt _fn
+  (newAttrs, newLogElt, newLogFn) <- _eventTargetRemoveEventListener _elt
+                                                                     evt
+                                                                     _fn
   wrt env elt $ _withNewLog (_withNewAttrs _elt newAttrs) newLogElt
   wrt env fn $ _withNewLog _fn newLogFn
 
-_'setAttribute :: IORef MockBrowserInternal -> Int -> String -> String -> IO ()
-_'setAttribute env elt nm attr = do
+_'elementSetAttribute
+  :: IORef MockBrowserInternal -> Int -> String -> String -> IO ()
+_'elementSetAttribute env elt nm attr = do
   _elt               <- look env elt
-  (newAttrs, newLog) <- _setAttribute _elt nm attr
+  (newAttrs, newLog) <- _elementSetAttribute _elt nm attr
   wrt env elt $ _withNewLog (_withNewAttrs _elt newAttrs) newLog
 
 makeMockBrowserWithContext :: IORef MockBrowserInternal -> IO (Browserful Int)
 makeMockBrowserWithContext r = return Browserful
-  { addEventListener    = _'addEventListener r
-  , appendChild         = _'appendChild r
-  , consoleLog          = _'consoleLog r
-  , consoleLog'         = _'consoleLog' r
-  , click               = _'click r
-  , createElement       = _'createElement r
-  , createTextNode      = _'createTextNode r
-  , freeCallback        = _'freeCallback r
-  , getBody             = _'getBody r
-  , getBool             = _'getBool r
-  , getChildren         = _'getChildren r
-  , getDouble           = _'getDouble r
-  , getElementById      = _'getElementById r
-  , getHead             = _'getHead r
-  , getInt              = _'getInt r
-  , getOpaque           = _'getOpaque r
-  , getString           = _'getString r
-  , getTag              = _'getTag r
-  , insertBefore        = _'insertBefore r
-  , invokeOn            = _'invokeOn r
-  , makeHaskellCallback = _'makeHaskellCallback r
-  , random01            = _'random01 r
-  , removeChild         = _'removeChild r
-  , removeEventListener = _'removeEventListener r
-  , setAttribute        = _'setAttribute r
-  , textContent         = _'textContent r
+  { eventTargetAddEventListener    = _'eventTargetAddEventListener r
+  , nodeAppendChild                = _'nodeAppendChild r
+  , consoleLog                     = _'consoleLog r
+  , consoleLog'                    = _'consoleLog' r
+  , htmlElemenetClick              = _'htmlElemenetClick r
+  , documentCreateElement          = _'documentCreateElement r
+  , documentCreateTextNode         = _'documentCreateTextNode r
+  , documentBody                   = _'documentBody r
+  , documentGetElementById         = _'documentGetElementById r
+  , documentHead                   = _'documentHead r
+  , _freeCallback                  = _'freeCallback r
+  , getPropertyAsBool              = _'getPropertyAsBool r
+  , getPropertyAsDouble            = _'getPropertyAsDouble r
+  , getPropertyAsInt               = _'getPropertyAsInt r
+  , getPropertyAsOpaque            = _'getPropertyAsOpaque r
+  , getPropertyAsString            = _'getPropertyAsString r
+  , elementTagName                 = _'elementTagName r
+  , nodeInsertBefore               = _'nodeInsertBefore r
+  , invokeOn0                      = _'invokeOn0 r
+  , _makeHaskellCallback           = _'makeHaskellCallback r
+  , nodeChildNodes                 = _'nodeChildNodes r
+  , mathRandom                     = _'mathRandom r
+  , nodeRemoveChild                = _'nodeRemoveChild r
+  , eventTargetRemoveEventListener = _'eventTargetRemoveEventListener r
+  , elementSetAttribute            = _'elementSetAttribute r
+  , nodeTextContent                = _'nodeTextContent r
   }
 
 defaultInternalBrowser :: IO (IORef MockBrowserInternal)

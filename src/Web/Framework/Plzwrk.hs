@@ -14,21 +14,13 @@ web applications, like event handling and attribute wrangling.
 -}
 
 module Web.Framework.Plzwrk
-  ( hydrate
-  , dats
-  , dats'
-  , Node(..)
-  , HydratedNode(..)
-  , Attributes(..)
-  , cssToStyle
-  , Browserful(..)
-  , reconcile
-  , plzwrk
+  ( plzwrk
   , plzwrk'
   , plzwrk'_
-  , OldStuff(..)
+  , Node(..)
+  , Attributes(..)
+  , Browserful(..)
   -- util
-  , (@=)
   , (<.>)
   , wStyle
   , wStyle'
@@ -48,9 +40,9 @@ module Web.Framework.Plzwrk
   , wAttr'
   , wAttrs
   , wAttrs'
-  , getTargetValue
-  , preventDefault
-  , blurTarget
+  , eventPreventDefault
+  , eventTargetBlur
+  , eventTargetValue
   )
 where
 

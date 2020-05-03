@@ -1,9 +1,7 @@
 module Web.Framework.Plzwrk.Domify
-  ( reconcile
-  , plzwrk
+  ( plzwrk
   , plzwrk'
   , plzwrk'_
-  , OldStuff(..)
   )
 where
 
@@ -43,11 +41,12 @@ data OldStuff state jsval = OldStuff {
 
 
 
+
 freeAttrFunctions
   :: DomifiedAttributes jsval -> ReaderT (Browserful jsval) IO ()
 freeAttrFunctions (MkDomifiedAttributes _ _ _ __d_handlers) = do
-  _freeCallback <- asks freeCallback
-  liftIO $ void (mapM _freeCallback (HM.elems __d_handlers))
+  __freeCallback <- asks _freeCallback
+  liftIO $ void (mapM __freeCallback (HM.elems __d_handlers))
 
 freeFunctions :: DomifiedNode jsval -> ReaderT (Browserful jsval) IO ()
 freeFunctions (DomifiedElement _ b c _) = do
@@ -88,6 +87,7 @@ reconcile refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElem
 -- the tags and attributes are equal
 
 
+
         let maxlen = max (length maybeNewChildren) (length currentChildren)
         newChildren <- sequence $ getZipList
           (   (reconcile refToOldStuff domCreationF currentNode topLevelNode)
@@ -95,6 +95,7 @@ reconcile refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElem
           <*> (ZipList (padr maxlen Nothing (fmap Just maybeNewChildren)))
           )
         -- make new attributes to set event handlers
+
 
 
         currentAttributes <- hydratedAttrsToDomifiedAttrs refToOldStuff
@@ -162,13 +163,13 @@ reconcile refToOldStuff domCreationF parentNode topLevelNode Nothing (Just maybe
     return $ Just res
 reconcile refToOldStuff domCreationF parentNode _ (Just (DomifiedElement _ _ _ currentNode)) Nothing
   = do
-    _removeChild <- asks removeChild
-    liftIO $ _removeChild parentNode currentNode
+    _nodeRemoveChild <- asks nodeRemoveChild
+    liftIO $ _nodeRemoveChild parentNode currentNode
     return Nothing
 reconcile refToOldStuff domCreationF parentNode _ (Just (DomifiedTextNode _ currentNode)) Nothing
   = do
-    _removeChild <- asks removeChild
-    liftIO $ _removeChild parentNode currentNode
+    _nodeRemoveChild <- asks nodeRemoveChild
+    liftIO $ _nodeRemoveChild parentNode currentNode
     return Nothing
 reconcile _ _ _ _ _ _ = error "Inconsistent state"
 
@@ -205,9 +206,9 @@ eventable
   -> (jsval -> state -> IO state)
   -> ReaderT (Browserful jsval) IO jsval
 eventable refToOldStuff domCreationF topLevelNode eventToState = do
-  _makeHaskellCallback <- asks makeHaskellCallback
-  env                  <- ask
-  liftIO $ _makeHaskellCallback
+  __makeHaskellCallback <- asks _makeHaskellCallback
+  env                   <- ask
+  liftIO $ __makeHaskellCallback
     (cbMaker refToOldStuff domCreationF topLevelNode eventToState env)
 
 hydratedAttrsToDomifiedAttrs
@@ -230,14 +231,16 @@ hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF topLevelNode (MkAttribut
 setAtts :: jsval -> DomifiedAttributes jsval -> ReaderT (Browserful jsval) IO ()
 setAtts currentNode domifiedAttributes@(MkDomifiedAttributes __style __class __simple _)
   = do
-    _setAttribute <- asks setAttribute
+    _elementSetAttribute <- asks elementSetAttribute
     liftIO $ if (HM.null __style)
       then (pure ())
-      else (_setAttribute currentNode "style") . cssToStyle $ __style
+      else (_elementSetAttribute currentNode "style") . cssToStyle $ __style
     liftIO $ if (S.null __class)
       then (pure ())
-      else ((_setAttribute currentNode "class") . unwords . S.toList) $ __class
-    liftIO $ mapM_ (\x -> _setAttribute currentNode (fst x) (snd x))
+      else
+        ((_elementSetAttribute currentNode "class") . unwords . S.toList)
+          $ __class
+    liftIO $ mapM_ (\x -> _elementSetAttribute currentNode (fst x) (snd x))
                    (HM.toList __simple)
     setEventHandlers currentNode domifiedAttributes
 
@@ -253,16 +256,16 @@ handleOnlyEventListeners eventListenerHandlerF currentNode domifiedAttributes =
 setEventHandlers
   :: jsval -> DomifiedAttributes jsval -> ReaderT (Browserful jsval) IO ()
 setEventHandlers currentNode domifiedAttributes = do
-  _addEventListener <- asks addEventListener
-  liftIO $ handleOnlyEventListeners _addEventListener
+  _eventTargetAddEventListener <- asks eventTargetAddEventListener
+  liftIO $ handleOnlyEventListeners _eventTargetAddEventListener
                                     currentNode
                                     domifiedAttributes
 
 removeEventHandlers
   :: jsval -> DomifiedAttributes jsval -> ReaderT (Browserful jsval) IO ()
 removeEventHandlers currentNode domifiedAttributes = do
-  _removeEventListener <- asks removeEventListener
-  liftIO $ handleOnlyEventListeners _removeEventListener
+  _eventTargetRemoveEventListener <- asks eventTargetRemoveEventListener
+  liftIO $ handleOnlyEventListeners _eventTargetRemoveEventListener
                                     currentNode
                                     domifiedAttributes
 
@@ -276,48 +279,53 @@ domify
   -> ReaderT (Browserful jsval) IO (DomifiedNode jsval)
 domify refToOldStuff domCreationF parentNode topLevelNode replacing (HydratedElement tag attrs children)
   = do
-    _createElement <- asks createElement
-    _appendChild   <- asks appendChild
-    _insertBefore  <- asks insertBefore
-    _removeChild   <- asks removeChild
-    newNode        <- liftIO $ _createElement tag
-    newAttributes  <- hydratedAttrsToDomifiedAttrs refToOldStuff
-                                                   domCreationF
-                                                   topLevelNode
-                                                   attrs
+    _documentCreateElement <- asks documentCreateElement
+    _nodeAppendChild       <- asks nodeAppendChild
+    _nodeInsertBefore      <- asks nodeInsertBefore
+    _nodeRemoveChild       <- asks nodeRemoveChild
+    newNode                <- liftIO $ _documentCreateElement tag
+    newAttributes          <- hydratedAttrsToDomifiedAttrs refToOldStuff
+                                                           domCreationF
+                                                           topLevelNode
+                                                           attrs
     setAtts newNode newAttributes
     newChildren <- mapM
       (domify refToOldStuff domCreationF newNode topLevelNode Nothing)
       children
     maybe
-      (liftIO $ _appendChild parentNode newNode)
+      (liftIO $ _nodeAppendChild parentNode newNode)
       (\x -> do
-        liftIO $ _insertBefore parentNode newNode x
-        liftIO $ _removeChild parentNode x
+        liftIO $ _nodeInsertBefore parentNode newNode x
+        liftIO $ _nodeRemoveChild parentNode x
       )
       replacing
     liftIO $ return (DomifiedElement tag newAttributes newChildren newNode)
 domify _ _ parentNode topLevelNode replacing (HydratedTextNode text) = do
-  _createElement  <- asks createElement
-  _appendChild    <- asks appendChild
-  _insertBefore   <- asks insertBefore
-  _removeChild    <- asks removeChild
-  _createTextNode <- asks createTextNode
-  newTextNode     <- liftIO $ _createTextNode text
+  _documentCreateElement  <- asks documentCreateElement
+  _nodeAppendChild        <- asks nodeAppendChild
+  _nodeInsertBefore       <- asks nodeInsertBefore
+  _nodeRemoveChild        <- asks nodeRemoveChild
+  _documentCreateTextNode <- asks documentCreateTextNode
+  newTextNode             <- liftIO $ _documentCreateTextNode text
   maybe
-    (liftIO $ _appendChild parentNode newTextNode)
+    (liftIO $ _nodeAppendChild parentNode newTextNode)
     (\x -> do
-      liftIO $ _insertBefore parentNode newTextNode x
-      liftIO $ _removeChild parentNode x
+      liftIO $ _nodeInsertBefore parentNode newTextNode x
+      liftIO $ _nodeRemoveChild parentNode x
     )
     replacing
   liftIO $ return (DomifiedTextNode text newTextNode)
 
+-- |The main function that makes a web app.
 plzwrk
-  :: (state -> Node state jsval) -> state -> Browserful jsval -> String -> IO ()
+  :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
+  -> state -- ^ An initial state
+  -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
+  -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
+  -> IO () -- ^ Returns nothing
 plzwrk domF state env nodeId = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
-  parentNode    <- (getElementById env) nodeId
+  parentNode    <- (documentGetElementById env) nodeId
   newDom        <- maybe
     (error $ ("Cannot find node with id " <> nodeId))
     (\x -> runReaderT
@@ -327,10 +335,11 @@ plzwrk domF state env nodeId = do
     parentNode
   writeIORef refToOldStuff (OldStuff state newDom)
 
+-- |A variation of plzwrk that inserts the node as a child of the document's body.
 plzwrk' :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
 plzwrk' domF state env = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
-  parentNode    <- (getBody env)
+  parentNode    <- (documentBody env)
   newDom        <- runReaderT
     (reconcile refToOldStuff
                domF
@@ -342,5 +351,6 @@ plzwrk' domF state env = do
     env
   writeIORef refToOldStuff (OldStuff state newDom)
 
-plzwrk'_ :: (Int -> Node Int jsval) -> Browserful jsval -> IO ()
-plzwrk'_ domF env = plzwrk' domF 0 env
+-- |A variation of plzwrk that takes no state.
+plzwrk'_ :: (() -> Node () jsval) -> Browserful jsval -> IO ()
+plzwrk'_ domF env = plzwrk' domF () env

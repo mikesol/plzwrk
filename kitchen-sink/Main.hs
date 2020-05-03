@@ -46,7 +46,7 @@ surprise =
 writeSomethingConcrete browser = input
   (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
     (\e s -> do
-      v <- (getTargetValue browser) e
+      v <- (eventTargetValue browser) e
       return $ maybe s (\q -> s { _myNoun = q }) v
     )
   )
@@ -65,10 +65,10 @@ addAphorismButton browser =
   (\a2c -> button'
       (wId "incr" <.> wClass "dim" <.> wOnClick
         (\e s -> do
-          (blurTarget browser) e
+          (eventTargetBlur browser) e
           (consoleLog browser) $ "Here is the current state " <> show s
-          concept    <- randAbstract (random01 browser)
-          comparedTo <- randConcrete (random01 browser)
+          concept    <- randAbstract (mathRandom browser)
+          comparedTo <- randConcrete (mathRandom browser)
           let newS = s { _abstractToConcrete = (concept, comparedTo) : a2c }
           (consoleLog browser) $ "Here is the new state " <> show newS
           return $ newS
@@ -82,7 +82,7 @@ removeAphorismButton browser =
   (\a2c -> button'
       (wId "decr" <.> wClass "dim" <.> wOnClick
         (\e s -> do
-          (blurTarget browser) e
+          (eventTargetBlur browser) e
           pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
         )
       )
@@ -98,11 +98,11 @@ main :: IO ()
 main = do
   browser <- asteriusBrowser
   -- add some css!
-  _head   <- (getHead browser)
-  _style  <- (createElement browser) "style"
-  _css    <- (createTextNode browser) (DT.unpack myCss)
-  (appendChild browser) _style _css
-  (appendChild browser) _head _style
+  _head   <- (documentHead browser)
+  _style  <- (documentCreateElement browser) "style"
+  _css    <- (documentCreateTextNode browser) (DT.unpack myCss)
+  (nodeAppendChild browser) _style _css
+  (nodeAppendChild browser) _head _style
   -- and here is our main div
   let mainDivF = T.main_
         [ section

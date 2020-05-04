@@ -1,5 +1,10 @@
 # Changelog for plzwrk
 
+## 0.0.0.3
+
+- Adds bindings for `fetch`
+- Simplifies `Browserful` API to only contain primitives and uses utility functions to build on top of the primitives.
+
 ## 0.0.0.2
 
 - Adds server side rendering via `toHTML` and `plzwrkSSR`.

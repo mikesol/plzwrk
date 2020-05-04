@@ -19,6 +19,7 @@ import           Data.Maybe                     ( catMaybes )
 import qualified Data.Set                      as S
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
+import           Web.Framework.Plzwrk.Util
 
 data DomifiedAttributes jsval = MkDomifiedAttributes
   { _d_style     :: HM.HashMap String String
@@ -364,7 +365,8 @@ transformFromCurrentDom
   -> ReaderT (Browserful jsval) IO [DomifiedNode jsval]
 transformFromCurrentDom parentNode children = do
   _nodeChildNodes <- asks nodeChildNodes
-  kids            <- liftIO $ _nodeChildNodes parentNode
+  _kids            <- liftIO $ _nodeChildNodes parentNode
+  let kids = maybe [] id _kids
   newChildren     <- sequence $ getZipList
     (   transformFromCurrentDom
     <$> (ZipList kids)

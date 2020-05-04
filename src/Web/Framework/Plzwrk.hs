@@ -45,6 +45,21 @@ module Web.Framework.Plzwrk
   , eventPreventDefault
   , eventTargetBlur
   , eventTargetValue
+  , elementSetAttribute
+  , elementTagName
+  , eventTargetAddEventListener
+  , eventTargetRemoveEventListener
+  , getPropertyAsBool
+  , getPropertyAsDouble
+  , getPropertyAsInt
+  , getPropertyAsString
+  , htmlElemenetClick
+  , consoleLogS
+  , nodeAppendChild
+  , nodeChildNodes
+  , nodeInsertBefore
+  , nodeRemoveChild
+  , nodeTextContent
   )
 where
 

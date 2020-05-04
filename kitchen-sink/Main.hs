@@ -66,11 +66,11 @@ addAphorismButton browser =
       (wId "incr" <.> wClass "dim" <.> wOnClick
         (\e s -> do
           (eventTargetBlur browser) e
-          (consoleLog browser) $ "Here is the current state " <> show s
+          (consoleLogS browser) $ "Here is the current state " <> show s
           concept    <- randAbstract (mathRandom browser)
           comparedTo <- randConcrete (mathRandom browser)
           let newS = s { _abstractToConcrete = (concept, comparedTo) : a2c }
-          (consoleLog browser) $ "Here is the new state " <> show newS
+          (consoleLogS browser) $ "Here is the new state " <> show newS
           return $ newS
         )
       )

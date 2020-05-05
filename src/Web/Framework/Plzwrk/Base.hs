@@ -7,6 +7,7 @@ module Web.Framework.Plzwrk.Base
   , Attributes(..)
   , cssToStyle
   , toHTML
+  , toHTML'
   )
 where
 
@@ -107,6 +108,8 @@ stringifyAttributes (MkAttributes __style __class __simple _) =
       )
     ]
 
+
+
 _toHTML :: HydratedNode state jsval -> String
 _toHTML (HydratedElement tag attrs ch) =
   "<"
@@ -125,3 +128,9 @@ toHTML
   -> state -- ^ An initial state
   -> String -- ^ The resulting HTML
 toHTML domF state = _toHTML (hydrate state domF)
+
+-- |Converts a Node that does not take a state to HTML.
+toHTML'
+  :: (() -> Node () jsval) -- ^ A function that takes a state and produces a DOM
+  -> String -- ^ The resulting HTML
+toHTML' domF = _toHTML (hydrate () domF)

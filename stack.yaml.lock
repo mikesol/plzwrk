@@ -75,6 +75,13 @@ packages:
   original:
     hackage: random-1.1
 - completed:
+    hackage: scotty-0.11.5@sha256:81be421b82e4fb4b34c82faf265baf01461e2ebea9d36557ea916f6ce542e20b,4692
+    pantry-tree:
+      size: 1410
+      sha256: 5ff25ca6d8c5d97fc722e86bb92705e156b6b7e0369a4c185429e1d868d2e1d2
+  original:
+    hackage: scotty-0.11.5
+- completed:
     hackage: parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
     pantry-tree:
       size: 2574

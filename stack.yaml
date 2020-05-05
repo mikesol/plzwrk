@@ -51,6 +51,7 @@ extra-deps:
 - mtl-2.2.2
 - neat-interpolation-0.5.1
 - random-1.1
+- scotty-0.11.5
 - parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
 #### for testing using keyvaluehash as our mock dom
 - hspec-2.7.1

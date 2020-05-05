@@ -19,6 +19,7 @@ module Web.Framework.Plzwrk
   , plzwrk'_
   , plzwrkSSR
   , toHTML
+  , toHTML'
   , Node(..)
   , Attributes(..)
   , Browserful(..)

@@ -17,7 +17,8 @@ import           Text.Parsec
 import           Text.Parsec.String
 
 data HSXAttribute = HSXStringAttribute String
-                 | HSXHaskellCodeAttribute String deriving (Show, Eq)
+                 | HSXHaskellCodeAttribute String
+                 | HSXHaskellTxtAttribute String deriving (Show, Eq)
 
 data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXSelfClosingTag String [(String, HSXAttribute)]
@@ -56,15 +57,22 @@ stringAttribute = do
   char '"'
   return $ HSXStringAttribute value
 
+haskellTxtAttr = do
+  string "#t{"
+  value <- manyTill anyChar (string "}#")
+  ws
+  return $ HSXHaskellTxtAttribute value
+
+
 haskellCodeAttr = do
-  string "#{"
+  string "#c{"
   value <- manyTill anyChar (string "}#")
   ws
   return $ HSXHaskellCodeAttribute value
 
 haskellCodeNode :: Parser HSX
 haskellCodeNode = do
-  string "#{"
+  string "#e{"
   value <- manyTill anyChar (string "}#")
   ws
   return $ HSXHaskellCode value
@@ -75,7 +83,7 @@ attribute = do
   ws
   char '='
   ws
-  value <- stringAttribute <|> haskellCodeAttr
+  value <- stringAttribute <|> (try haskellCodeAttr) <|> haskellTxtAttr
   ws
   return (name, value)
 

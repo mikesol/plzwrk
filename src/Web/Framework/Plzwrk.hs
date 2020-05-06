@@ -20,32 +20,15 @@ module Web.Framework.Plzwrk
   , plzwrkSSR
   , toHTML
   , PwNode(..)
-  , PwAttributes(..)
+  , PwAttribute(..)
   , Browserful(..)
   -- hsx
   , hsx
   , hsx'
   , hmFromList
   -- util
-  , (<.>)
-  , wStyle
-  , wStyle'
-  , wStyles
-  , wStyles'
-  , wClass
-  , wClass'
-  , wClasses
-  , wClasses'
-  , wOnClick
-  , wOnClick'
-  , wId
-  , wId'
-  , wOnInput
-  , wOnInput'
-  , wAttr
-  , wAttr'
-  , wAttrs
-  , wAttrs'
+  , pF
+  , pT
   , eventPreventDefault
   , eventTargetBlur
   , eventTargetValue

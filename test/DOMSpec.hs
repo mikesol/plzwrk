@@ -38,19 +38,17 @@ data MyState = MyState
 domSpec = describe "Element with basic state" $ do
     let domF =
           (\x y -> div'_
-              [ p (wStyle "position" "absolute")
+              [ p [("style", pT "position:absolute")]
                   (take y $ repeat (txt (concat [x, show y])))
               , button
-                (wId "incr" <.> wClasses ["a b ccc"] <.> wOnClick
-                  (\_ s -> pure $ s { _ctr = y + 1 })
-                )
+                [("id", pT "incr"), ("class", pT "a b ccc"), ("click",
+                  pF (\_ s -> pure $ s { _ctr = y + 1 })
+                )]
                 [txt "Increase counter"]
               , br
               ,button
-                (   wId "decr"
-                <.> wStyles [("position", "absolute"), ("margin", "10px")]
-                <.> wOnClick (\_ s -> pure $ s { _ctr = y - 1 })
-                )
+                [("id", pT "decr"), ("style", pT "position:absolute;margin:10px")
+                  , ("click", pF (\_ s -> pure $ s { _ctr = y - 1 }))]
                 [txt "Decrease counter"]
               ]
             )
@@ -109,4 +107,4 @@ domSpec = describe "Element with basic state" $ do
       length childrenLevel2'' `shouldBe` 3
       content'' <- mapM (nodeTextContentOrThrow mock) childrenLevel2''
       content'' `shouldBe` (take 3 $ repeat "Mike3")
-      toHTML domF state `shouldBe` "<div><p style=\"position:absolute\">Mike1</p><button class=\"a b ccc\" id=\"incr\">Increase counter</button><br/><button style=\"margin:10px;position:absolute\" id=\"decr\">Decrease counter</button></div>"
+      toHTML domF state `shouldBe` "<div><p style=\"position:absolute\">Mike1</p><button id=\"incr\" class=\"a b ccc\">Increase counter</button><br/><button id=\"decr\" style=\"position:absolute;margin:10px\">Decrease counter</button></div>"

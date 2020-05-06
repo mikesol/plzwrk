@@ -1,23 +1,6 @@
 module Web.Framework.Plzwrk.Util
-  ( (<.>)
-  , wStyle
-  , wStyle'
-  , wStyles
-  , wStyles'
-  , wClass
-  , wClass'
-  , wClasses
-  , wClasses'
-  , wOnClick
-  , wOnClick'
-  , wId
-  , wId'
-  , wOnInput
-  , wOnInput'
-  , wAttr
-  , wAttr'
-  , wAttrs
-  , wAttrs'
+  ( pT
+  , pF
   , eventTargetValue
   , eventPreventDefault
   , eventTargetBlur
@@ -44,98 +27,17 @@ import           Data.HashMap.Strict           as HM
 import           Data.Set                      as S
 import           Web.Framework.Plzwrk.Base      ( dats
                                                 , dats'
-                                                , PwAttributes(..)
+                                                , PwAttribute(..)
                                                 )
 import           Web.Framework.Plzwrk.Browserful
 
-merge :: PwAttributes s opq -> PwAttributes s opq -> PwAttributes s opq
-merge a b = MkPwAttributes { _style    = HM.union (_style a) (_style b)
-                         , _class    = S.union (_class a) (_class b)
-                         , _simple   = HM.union (_simple a) (_simple b)
-                         , _handlers = HM.union (_handlers a) (_handlers b)
-                         }
+-- | Creates a text attribute wrapped in an applicative functor
+pT :: String -> (s -> PwAttribute s opq)
+pT t = (\_ -> PwTextAttribute t)
 
--- |Merges two 'Attributes'
-(<.>)
-  :: (s -> PwAttributes s opq)
-  -> (s -> PwAttributes s opq)
-  -> (s -> PwAttributes s opq)
-a <.> b = (\s -> merge (a s) (b s))
-
--- |Constrcts a stateful 'Attributes' applicative functor from a single style.
-wStyle :: String -> String -> (s -> PwAttributes s opq)
-wStyle k v = (\s -> dats' { _style = HM.singleton k v })
-
--- |Constrcts an 'Attributes' from a single style.
-wStyle' :: String -> String -> PwAttributes s opq
-wStyle' k v = dats' { _style = HM.singleton k v }
-
--- |Constrcts a stateful 'Attributes' applicative functor from a list of styles.
-wStyles :: [(String, String)] -> (s -> PwAttributes s opq)
-wStyles kvs = (\s -> dats' { _style = HM.fromList kvs })
-
--- |Constrcts an 'Attributes' from a list of styles.
-wStyles' :: [(String, String)] -> PwAttributes s opq
-wStyles' kvs = dats' { _style = HM.fromList kvs }
-
--- |Constrcts a stateful 'Attributes' applicative functor from a single class.
-wClass :: String -> (s -> PwAttributes s opq)
-wClass k = (\s -> dats' { _class = S.singleton k })
-
--- |Constrcts an 'Attributes' from a single class.
-wClass' :: String -> PwAttributes s opq
-wClass' k = dats' { _class = S.singleton k }
-
--- |Constrcts a stateful 'Attributes' applicative functor from a list of clases.
-wClasses :: [String] -> (s -> PwAttributes s opq)
-wClasses ks = (\s -> dats' { _class = S.fromList ks })
-
--- |Constrcts an 'Attributes' from a list of classes.
-wClasses' :: [String] -> PwAttributes s opq
-wClasses' ks = dats' { _class = S.fromList ks }
-
--- |Constrcts a stateful 'Attributes' applicative functor with a given id.
-wId :: String -> (s -> PwAttributes s opq)
-wId v = (\s -> dats' { _simple = HM.singleton "id" v })
-
--- |Constrcts an 'Attributes' with a given id.
-wId' :: String -> PwAttributes s opq
-wId' v = dats' { _simple = HM.singleton "id" v }
-
--- |Constrcts a stateful 'Attributes' applicative functor from an @onClick@ callback.
-wOnClick :: (opq -> s -> IO s) -> (s -> PwAttributes s opq)
-wOnClick v = (\s -> dats' { _handlers = HM.singleton "click" v })
-
--- |Constrcts an 'Attributes' from an @onClick@ callback.
-wOnClick' :: (opq -> s -> IO s) -> PwAttributes s opq
-wOnClick' v = dats' { _handlers = HM.singleton "click" v }
-
--- |Constrcts a stateful 'Attributes' applicative functor from an @onInput@ callback.
-wOnInput :: (opq -> s -> IO s) -> (s -> PwAttributes s opq)
-wOnInput v = (\s -> dats' { _handlers = HM.singleton "input" v })
-
--- |Constrcts an 'Attributes' from an @onInput@ callback.
-wOnInput' :: (opq -> s -> IO s) -> PwAttributes s opq
-wOnInput' v = dats' { _handlers = HM.singleton "input" v }
-
--- |Constrcts a stateful 'Attributes' applicative functor from a single attribute.
-wAttr :: String -> String -> (s -> PwAttributes s opq)
-wAttr k v = (\s -> dats' { _simple = HM.singleton k v })
-
--- |Constrcts an 'Attributes' from a single attribute.
-wAttr' :: String -> String -> PwAttributes s opq
-wAttr' k v = dats' { _simple = HM.singleton k v }
-
--- |Constrcts a stateful 'Attributes' applicative functor from a list of attributes.
-wAttrs :: [(String, String)] -> (s -> PwAttributes s opq)
-wAttrs kvs = (\s -> dats' { _simple = HM.fromList kvs })
-
--- |Constrcts an 'Attributes' from a list of attributes.
-wAttrs' :: [(String, String)] -> PwAttributes s opq
-wAttrs' kvs = dats' { _simple = HM.fromList kvs }
-
------------------------------
----- events
+-- | Creates a callback attribute wrapped in an applicative functor
+pF :: (opq -> s -> IO s) -> (s -> PwAttribute s opq)
+pF f = (\_ -> PwFunctionAttribute f)
 
 -- |From an event, gets the target's value.
 eventTargetValue

@@ -772,8 +772,8 @@ import Prelude(String)
 import Web.Framework.Plzwrk.Base
 
 type AFSig s opq
-  = (s -> PwAttributes s opq) -> [s -> PwNode s opq] -> (s -> PwNode s opq)
-type Sig s opq = (s -> PwAttributes s opq) -> [s -> PwNode s opq] -> PwNode s opq
+  = [(String, (s -> PwAttribute s opq))] -> [s -> PwNode s opq] -> (s -> PwNode s opq)
+type Sig s opq = [(String, (s -> PwAttribute s opq))] -> [s -> PwNode s opq] -> PwNode s opq
 
 type AFSig_ s opq = [s -> PwNode s opq] -> (s -> PwNode s opq)
 type Sig_ s opq = [s -> PwNode s opq] -> PwNode s opq
@@ -1756,10 +1756,10 @@ iframe'__ :: Sig__ s opq
 iframe'__ x = PwElement "iframe" dats [txt x]
 
 
-img :: (s -> PwAttributes s opq) -> (s -> PwNode s opq)
+img :: [(String, (s -> PwAttribute s opq))] -> (s -> PwNode s opq)
 img x = (\_ -> PwElement "img" x [])
 
-img' :: (s -> PwAttributes s opq) -> PwNode s opq
+img' :: [(String, (s -> PwAttribute s opq))] -> PwNode s opq
 img' x = PwElement "img" x []
 
 img_ :: (s -> PwNode s opq)

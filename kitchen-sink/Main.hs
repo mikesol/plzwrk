@@ -44,17 +44,17 @@ surprise =
 
 -- here is where we will input a noun for our "surprise" aphorosim
 writeSomethingConcrete browser = input
-  (wAttr "type" "text" <.> wStyle "box-sizing" "content-box" <.> wOnInput
-    (\e s -> do
+  [("type", pT "text"), ("style", pT "box-sizing:content-box"), ("input",
+    pF (\e s -> do
       v <- (eventTargetValue browser) e
       return $ maybe s (\q -> s { _myNoun = q }) v
     )
-  )
+  )]
   []
 
 aphorismList =
   (\a2c -> ul'
-      (wClass "res")
+      [("class", pT "res")]
       (fmap (\(a, c) -> (li__ (concat [a, " is like", indefiniteArticle c, c])))
             a2c
       )
@@ -63,8 +63,8 @@ aphorismList =
 
 addAphorismButton browser =
   (\a2c -> button'
-      (wId "incr" <.> wClass "dim" <.> wOnClick
-        (\e s -> do
+      [("id", pT "incr"), ("class", pT "dim"), ("click",
+        pF (\e s -> do
           (eventTargetBlur browser) e
           (consoleLogS browser) $ "Here is the current state " <> show s
           concept    <- randAbstract (mathRandom browser)
@@ -73,25 +73,25 @@ addAphorismButton browser =
           (consoleLogS browser) $ "Here is the new state " <> show newS
           return $ newS
         )
-      )
+      )]
       [txt "More aphorisms"]
     )
     <$> _abstractToConcrete
 
 removeAphorismButton browser =
   (\a2c -> button'
-      (wId "decr" <.> wClass "dim" <.> wOnClick
+      [("id", pT "decr"), ("class", pT "dim"), ("click", pF
         (\e s -> do
           (eventTargetBlur browser) e
           pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
         )
-      )
+      )]
       [txt "Less aphorisms"]
     )
     <$> _abstractToConcrete
 
 loginText =
-  (\name -> p'_ [txt "Logged in as: ", span (wClass "username") [txt name]])
+  (\name -> p'_ [txt "Logged in as: ", span [("class", pT "username")] [txt name]])
     <$> _name
 
 main :: IO ()
@@ -106,12 +106,12 @@ main = do
   -- and here is our main div
   let mainDivF = T.main_
         [ section
-            (wClass "content")
+            [("class", pT "content")]
             [ h1__ "Aphorism Machine"
             , aphorismList
             , br
             , surprise
-            , div (wStyles [("width", "100%"), ("display", "inline-block")])
+            , div [("style", pT "width:100%;display:inline-block")]
                   [addAphorismButton browser, removeAphorismButton browser]
             , writeSomethingConcrete browser
             , loginText

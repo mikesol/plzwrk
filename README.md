@@ -5,8 +5,10 @@ A Haskell front-end framework.
 ## Hello world
 
 ```haskell
-import           Web.Framework.Plzwrk
-import           Web.Framework.Plzwrk.Asterius
+{-# LANGUAGE QuasiQuotes #-}
+
+import Web.Framework.Plzwrk
+import Web.Framework.Plzwrk.Asterius
 
 main :: IO ()
 main = do

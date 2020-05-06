@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP               #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 import           Web.Framework.Plzwrk
 #if defined(PLZWRK_ENABLE_ASTERIUS)

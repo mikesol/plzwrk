@@ -14,11 +14,11 @@ import           Web.Framework.Plzwrk
 
 hsxSpec = describe "HSXParser" $ do
   it "Parses simple hsx" $ do
-    let dom = [hsx|<h1>Hello</h1>|]
+    let dom = [hsx|<p>Hello world!</p>|]
     -- we use () for an empty state
 
-    _elt_tag (dom ()) `shouldBe` "h1"
-    _tn_text (((_elt_children (dom ())) !! 0) ()) `shouldBe` "Hello"
+    _elt_tag (dom ()) `shouldBe` "p"
+    _tn_text (((_elt_children (dom ())) !! 0) ()) `shouldBe` "Hello world!"
   it "Parses hsx with an event listener" $ do
     let dom = [hsx|
             <h1 id="foo" style="position:absolute">

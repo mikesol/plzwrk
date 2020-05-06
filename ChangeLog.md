@@ -1,5 +1,9 @@
 # Changelog for plzwrk
 
+## 0.0.0.4
+
+- Adds `hsx` and `hsx'` for `jsx`-like manipulation.
+
 ## 0.0.0.3
 
 - Adds bindings for `fetch`

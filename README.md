@@ -74,7 +74,19 @@ HTML-creation functions can be nested, allowing for powerful abstractions.
 nested = div_ (take 10 $ repeat makeP)
 ```
 
-HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments and no apostrophe (ie `div`) if they don't. The same is true of `hsx`, ie `[hsx|<br />|]` versus `(s -> [hsx'|<br />|])`. Additionally, HTML-creation functions for tags that do not have any attributes (class, style etc) are marked with a trailing underscore (`div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (`p__ "hello"`).
+### HSX
+
+`hsx` is not unlike `jsx`. The main difference is that instead of using just `{}`, `hsx` uses three different varieties of `#{}#`
+
+- `#e{}#` for an element
+- `#t{}#` for a text node or text attribute
+- `#c{}#` for a callback attribute
+
+### Hydrating with a state
+
+HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments from a state and no apostrophe (ie `div`) if they don't. The same is true of `hsx`, ie `[hsx|<br />|]` versus `(s -> [hsx'|<br />|])`. Additionally, HTML-creation functions for tags that do not have any attributes (class, style etc) are marked with a trailing underscore (`div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (`p__ "hello"`).
+
+### Event handlers
 
 Event handlers take two arguments - an opaque pointer to the event and the current state - and return a new state (which could just be the original state) in the `IO` monad. For example, if the state is an integer, a valid event handler could be:
 

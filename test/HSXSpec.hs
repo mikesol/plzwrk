@@ -52,4 +52,3 @@ hsxSpec = describe "HSXParser" $ do
         |])
     _elt_tag (dom 3) `shouldBe` "h1"
     _elt_tag (((_elt_children (dom 5)) !! 0) 3) `shouldBe` "a"
-    1 `shouldBe` 1

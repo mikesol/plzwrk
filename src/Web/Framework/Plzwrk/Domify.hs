@@ -28,17 +28,17 @@ data DomifiedAttributes jsval = MkDomifiedAttributes
   , _d_handlers  :: HM.HashMap String jsval
   }
 
-data DomifiedNode jsval = DomifiedElement
+data DomifiedPwNode jsval = DomifiedPwElement
     { _dom_tag  :: String
     , _dom_attr :: (DomifiedAttributes jsval)
-    , _dom_kids :: [DomifiedNode jsval]
+    , _dom_kids :: [DomifiedPwNode jsval]
     , _dom_ptr  :: jsval
     }
-    | DomifiedTextNode String jsval
+    | DomifiedPwTextNode String jsval
 
 data OldStuff state jsval = OldStuff {
   _oldState :: state,
-  _oldDom :: Maybe (DomifiedNode jsval)
+  _oldDom :: Maybe (DomifiedPwNode jsval)
 }
 
 ---------- reader functions
@@ -52,8 +52,8 @@ freeAttrFunctions (MkDomifiedAttributes _ _ _ __d_handlers) = do
   __freeCallback <- asks _freeCallback
   liftIO $ void (mapM __freeCallback (HM.elems __d_handlers))
 
-freeFunctions :: DomifiedNode jsval -> ReaderT (Browserful jsval) IO ()
-freeFunctions (DomifiedElement _ b c _) = do
+freeFunctions :: DomifiedPwNode jsval -> ReaderT (Browserful jsval) IO ()
+freeFunctions (DomifiedPwElement _ b c _) = do
   freeAttrFunctions b
   mapM_ freeFunctions c
 freeFunctions _ = pure ()
@@ -62,9 +62,9 @@ nodesEq
   :: String
   -> String
   -> DomifiedAttributes jsval
-  -> Attributes state jsval
+  -> PwAttributes state jsval
   -> Bool
-nodesEq t0 t1 (MkDomifiedAttributes __d_style __d_class __d_simple _) (MkAttributes __style __class __simple _)
+nodesEq t0 t1 (MkDomifiedAttributes __d_style __d_class __d_simple _) (MkPwAttributes __style __class __simple _)
   = (t0 == t1)
     && (__d_style == __style)
     && (__d_class == __class)
@@ -76,16 +76,16 @@ padr i v l = if (length l >= i) then l else padr i v (l ++ [v])
 reconcile
   :: Bool
   -> IORef (OldStuff state jsval)
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> jsval
   -> jsval
-  -> Maybe (DomifiedNode jsval)
-  -> Maybe (HydratedNode state jsval)
+  -> Maybe (DomifiedPwNode jsval)
+  -> Maybe (HydratedPwNode state jsval)
   -> ReaderT
        (Browserful jsval)
        IO
-       (Maybe (DomifiedNode jsval))
-reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedElement maybeNewTag maybeNewAttributes maybeNewChildren))
+       (Maybe (DomifiedPwNode jsval))
+reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedPwElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedPwElement maybeNewTag maybeNewAttributes maybeNewChildren))
   = if (nodesEq currentTag maybeNewTag currentAttributes maybeNewAttributes)
     then
       (do
@@ -112,7 +112,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
             )
           else (pure ())
         return $ Just
-          (DomifiedElement currentTag
+          (DomifiedPwElement currentTag
                            currentAttributes
                            (catMaybes newChildren)
                            currentNode
@@ -129,7 +129,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
                       maybeNewNode
         return $ Just res
       )
-reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just currentDomifiedString@(DomifiedTextNode currentString currentNode)) (Just maybeNewNode@(HydratedTextNode maybeNewString))
+reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just currentDomifiedString@(DomifiedPwTextNode currentString currentNode)) (Just maybeNewNode@(HydratedPwTextNode maybeNewString))
   = if (currentString == maybeNewString)
     then pure (Just currentDomifiedString)
     else
@@ -143,7 +143,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just curr
                       maybeNewNode
         return $ Just res
       )
-reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedElement _ _ _ currentNode)) (Just maybeNewNode@(HydratedTextNode _))
+reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedPwElement _ _ _ currentNode)) (Just maybeNewNode@(HydratedPwTextNode _))
   = do
     res <- domify touchDOM
                   refToOldStuff
@@ -153,7 +153,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
                   (Just currentNode)
                   maybeNewNode
     return $ Just res
-reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedTextNode _ currentNode)) (Just maybeNewNode@(HydratedElement _ _ _))
+reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedPwTextNode _ currentNode)) (Just maybeNewNode@(HydratedPwElement _ _ _))
   = do
     res <- domify touchDOM
                   refToOldStuff
@@ -173,7 +173,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode Nothing (J
                   Nothing
                   maybeNewNode
     return $ Just res
-reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedElement _ _ _ currentNode)) Nothing
+reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedPwElement _ _ _ currentNode)) Nothing
   = if (touchDOM)
     then
       (do
@@ -182,7 +182,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedElemen
         return Nothing
       )
     else (pure Nothing)
-reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedTextNode _ currentNode)) Nothing
+reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedPwTextNode _ currentNode)) Nothing
   = if (touchDOM)
     then
       (do
@@ -197,7 +197,7 @@ reconcileAndAdd = reconcile True
 
 cbMaker
   :: IORef (OldStuff state jsval)
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> jsval
   -> (jsval -> state -> IO state)
   -> Browserful jsval
@@ -223,7 +223,7 @@ cbMaker refToOldStuff domCreationF topLevelNode eventToState env event = do
 
 eventable
   :: IORef (OldStuff state jsval)
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> jsval
   -> (jsval -> state -> IO state)
   -> ReaderT (Browserful jsval) IO jsval
@@ -235,11 +235,11 @@ eventable refToOldStuff domCreationF topLevelNode eventToState = do
 
 hydratedAttrsToDomifiedAttrs
   :: IORef (OldStuff state jsval)
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> jsval
-  -> Attributes state jsval
+  -> PwAttributes state jsval
   -> ReaderT (Browserful jsval) IO (DomifiedAttributes jsval)
-hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF topLevelNode (MkAttributes __style __class __simple __handlers)
+hydratedAttrsToDomifiedAttrs refToOldStuff domCreationF topLevelNode (MkPwAttributes __style __class __simple __handlers)
   = do
     handlers <- mapM
       (\(k, v) -> do
@@ -294,13 +294,13 @@ removeEventHandlers currentNode domifiedAttributes = do
 domify
   :: Bool
   -> IORef (OldStuff state jsval)
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> jsval
   -> jsval
   -> Maybe jsval
-  -> HydratedNode state jsval
-  -> ReaderT (Browserful jsval) IO (DomifiedNode jsval)
-domify touchDOM refToOldStuff domCreationF parentNode topLevelNode replacing (HydratedElement tag attrs children)
+  -> HydratedPwNode state jsval
+  -> ReaderT (Browserful jsval) IO (DomifiedPwNode jsval)
+domify touchDOM refToOldStuff domCreationF parentNode topLevelNode replacing (HydratedPwElement tag attrs children)
   = do
     _documentCreateElement <- asks documentCreateElement
     _nodeAppendChild       <- asks nodeAppendChild
@@ -327,8 +327,8 @@ domify touchDOM refToOldStuff domCreationF parentNode topLevelNode replacing (Hy
             replacing
         )
       else (pure ())
-    liftIO $ return (DomifiedElement tag newAttributes newChildren newNode)
-domify touchDOM _ _ parentNode topLevelNode replacing (HydratedTextNode text) =
+    liftIO $ return (DomifiedPwElement tag newAttributes newChildren newNode)
+domify touchDOM _ _ parentNode topLevelNode replacing (HydratedPwTextNode text) =
   do
     _documentCreateElement  <- asks documentCreateElement
     _nodeAppendChild        <- asks nodeAppendChild
@@ -348,21 +348,21 @@ domify touchDOM _ _ parentNode topLevelNode replacing (HydratedTextNode text) =
             replacing
         )
       else (pure ())
-    liftIO $ return (DomifiedTextNode text newTextNode)
+    liftIO $ return (DomifiedPwTextNode text newTextNode)
 
-getChildren :: DomifiedNode jsval -> [DomifiedNode jsval]
-getChildren (DomifiedElement _ _ x _) = x
+getChildren :: DomifiedPwNode jsval -> [DomifiedPwNode jsval]
+getChildren (DomifiedPwElement _ _ x _) = x
 getChildren _                         = []
 
 setEventHandlers_
-  :: jsval -> DomifiedNode jsval -> ReaderT (Browserful jsval) IO ()
-setEventHandlers_ v (DomifiedElement _ a _ _) = setEventHandlers v a
+  :: jsval -> DomifiedPwNode jsval -> ReaderT (Browserful jsval) IO ()
+setEventHandlers_ v (DomifiedPwElement _ a _ _) = setEventHandlers v a
 setEventHandlers_ _ _                         = liftIO $ pure ()
 
 transformFromCurrentDom
   :: jsval
-  -> [DomifiedNode jsval]
-  -> ReaderT (Browserful jsval) IO [DomifiedNode jsval]
+  -> [DomifiedPwNode jsval]
+  -> ReaderT (Browserful jsval) IO [DomifiedPwNode jsval]
 transformFromCurrentDom parentNode children = do
   _nodeChildNodes <- asks nodeChildNodes
   _kids            <- liftIO $ _nodeChildNodes parentNode
@@ -383,19 +383,19 @@ transformFromCurrentDom parentNode children = do
 
 addHandlers
   :: jsval
-  -> DomifiedNode jsval
-  -> ReaderT (Browserful jsval) IO (DomifiedNode jsval)
+  -> DomifiedPwNode jsval
+  -> ReaderT (Browserful jsval) IO (DomifiedPwNode jsval)
 addHandlers parentNode curDom = do
   transformed <- transformFromCurrentDom parentNode [curDom]
   return $ (transformed !! 0)
 
 __plzwrk
   :: Bool
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> state
   -> jsval
   -> Browserful jsval
-  -> IO (Maybe (DomifiedNode jsval))
+  -> IO (Maybe (DomifiedPwNode jsval))
 __plzwrk cleanDOM domF state parentNode env = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
   newDom        <- runReaderT
@@ -424,11 +424,11 @@ __plzwrk cleanDOM domF state parentNode env = do
 
 _plzwrk
   :: Bool
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> state
   -> Browserful jsval
   -> String
-  -> IO (Maybe (DomifiedNode jsval))
+  -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk cleanDOM domF state env nodeId = do
   parentNode <- (documentGetElementById env) nodeId
   maybe (error ("Node with id not in DOM: " <> show nodeId))
@@ -438,7 +438,7 @@ _plzwrk cleanDOM domF state env nodeId = do
 
 -- |The main function that makes a web app.
 plzwrk
-  :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
+  :: (state -> PwNode state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
   -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
   -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
@@ -449,7 +449,7 @@ plzwrk domF state env nodeId = void $ _plzwrk True domF state env nodeId
 -- ie by server-side rendering. It assumes the node has been rendered
 -- with the same state-to-node function as well as the same state.
 plzwrkSSR
-  :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
+  :: (state -> PwNode state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
   -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
   -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
@@ -458,26 +458,26 @@ plzwrkSSR domF state env nodeId = void $ _plzwrk False domF state env nodeId
 
 _plzwrk'
   :: Bool
-  -> (state -> Node state jsval)
+  -> (state -> PwNode state jsval)
   -> state
   -> Browserful jsval
-  -> IO (Maybe (DomifiedNode jsval))
+  -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk' cleanDOM domF state env = do
   parentNode <- (documentBody env)
   __plzwrk cleanDOM domF state parentNode env
 
 -- |A variation of plzwrk that inserts the node as a child of the document's body.
-plzwrk' :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
+plzwrk' :: (state -> PwNode state jsval) -> state -> Browserful jsval -> IO ()
 plzwrk' domF state env = void $ _plzwrk' True domF state env
 
 -- |A variation of plzwrk that inserts the node as a child of the document's body.
-plzwrkSSR' :: (state -> Node state jsval) -> state -> Browserful jsval -> IO ()
+plzwrkSSR' :: (state -> PwNode state jsval) -> state -> Browserful jsval -> IO ()
 plzwrkSSR' domF state env = void $ _plzwrk' False domF state env
 
 -- |A variation of plzwrk that takes no state.
-plzwrk'_ :: (() -> Node () jsval) -> Browserful jsval -> IO ()
+plzwrk'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
 plzwrk'_ domF env = plzwrk' domF () env
 
 -- |A variation of plzwrkSSR that takes no state.
-plzwrkSSR'_ :: (() -> Node () jsval) -> Browserful jsval -> IO ()
+plzwrkSSR'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
 plzwrkSSR'_ domF env = plzwrkSSR' domF () env

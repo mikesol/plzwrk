@@ -75,6 +75,27 @@ packages:
   original:
     hackage: random-1.1
 - completed:
+    hackage: split-0.2.3.4@sha256:bad9bfc9e8e0aca4ac1f7b3a2767ee6b1c199d4a1b6960db5cc3d7674aee5d73,2564
+    pantry-tree:
+      size: 439
+      sha256: d931baa404f6867a23ed342c11ef27613227a7a82ba2324f95da184fffad0bd9
+  original:
+    hackage: split-0.2.3.4
+- completed:
+    hackage: haskell-src-meta-0.8.5@sha256:67730e4772f0dd11e66389cf33e7b3055f8176168811be8205d62f9a2bcaf603,2656
+    pantry-tree:
+      size: 962
+      sha256: 9192741a2f2da93aab1585a4a0f2904444420d0ad29fbf32f98416df4a100034
+  original:
+    hackage: haskell-src-meta-0.8.5
+- completed:
+    hackage: template-haskell-2.15.0.0@sha256:6e803fbff5069effa18a921c76b3fed4535542e0721b464f38012b2f9eb66562,1894
+    pantry-tree:
+      size: 850
+      sha256: f791cf4dc36c6205e259019389bff7c4a146ef06117f36d63a571521d147779b
+  original:
+    hackage: template-haskell-2.15.0.0
+- completed:
     hackage: parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
     pantry-tree:
       size: 2574

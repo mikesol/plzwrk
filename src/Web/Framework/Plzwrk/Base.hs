@@ -2,9 +2,9 @@ module Web.Framework.Plzwrk.Base
   ( hydrate
   , dats
   , dats'
-  , Node(..)
-  , HydratedNode(..)
-  , Attributes(..)
+  , PwNode(..)
+  , HydratedPwNode(..)
+  , PwAttributes(..)
   , cssToStyle
   , toHTML
   )
@@ -20,29 +20,29 @@ cssToStyle css =
   (intercalate ";" $ fmap (\(x, y) -> x <> ":" <> y) (HM.toList css))
 
 
--- |Attributes for a DOM Node.
--- Attributes are parameterized by two types
+-- |PwAttributes for a DOM PwNode.
+-- PwAttributes are parameterized by two types
 -- * @s@ - the type of the state
 -- * @opq@ - the type of an opaque object in JavaScript
 --
--- You will rarely need to instantiate @Attributes@ yourself,
+-- You will rarely need to instantiate @PwAttributes@ yourself,
 -- as it is easier to work with utility functions like 'wId',
 -- 'wStyle' etc that produce Applicative Functors with signature
--- @(s -> Attributes s opq)@. These AFs are used in the 'Node' data.
-data Attributes s opq = MkAttributes
+-- @(s -> PwAttributes s opq)@. These AFs are used in the 'PwNode' data.
+data PwAttributes s opq = MkPwAttributes
   { _style    :: HM.HashMap String String
   , _class    :: S.Set String
   , _simple   :: HM.HashMap String String
   , _handlers :: HM.HashMap String (opq -> s -> IO s)
   }
 
-dats = (\_ -> MkAttributes HM.empty S.empty HM.empty HM.empty)
-dats' = MkAttributes HM.empty S.empty HM.empty HM.empty
+dats = (\_ -> MkPwAttributes HM.empty S.empty HM.empty HM.empty)
+dats' = MkPwAttributes HM.empty S.empty HM.empty HM.empty
 
 
-instance Show (Attributes s opq) where
-  show (MkAttributes __style __class __simple _) =
-    "Attributes ("
+instance Show (PwAttributes s opq) where
+  show (MkPwAttributes __style __class __simple _) =
+    "PwAttributes ("
       <> show __style
       <> ", "
       <> show __class
@@ -53,43 +53,43 @@ instance Show (Attributes s opq) where
 -- |A DOM node.
 -- The easiest way to create nodes is using tags such as
 -- 'Web.Framework.Plzwrk.Util.span' or 'Web.Framework.Plzwrk.br'.
--- Nodes can be created for arbitrary tags using the 'Element'
+-- PwNodes can be created for arbitrary tags using the 'PwElement'
 -- constructor.
 --
--- Node is parameterized by two types
+-- PwNode is parameterized by two types
 -- * @s@ - the type of the state
 -- * @opq@ - the type of an opaque object in JavaScript
 --
 -- Note that nodes, when passed as an arguemnt to 'plzwrk', need
--- to be Applicative Functors in the form @(s -> Node s opq)@.
-data Node s opq = Element
+-- to be Applicative Functors in the form @(s -> PwNode s opq)@.
+data PwNode s opq = PwElement
     { _elt_tag :: String
-    , _elt_attrs :: (s -> Attributes s opq)
-    , _elt_children :: [s -> Node s opq]
-    } | TextNode { _tn_text :: String }
+    , _elt_attrs :: (s -> PwAttributes s opq)
+    , _elt_children :: [s -> PwNode s opq]
+    } | PwTextNode { _tn_text :: String }
 
-instance Show (Node s opq) where
-  show (Element t _ _) = show t
-  show (TextNode t   ) = show t
+instance Show (PwNode s opq) where
+  show (PwElement t _ _) = show t
+  show (PwTextNode t   ) = show t
 
-data HydratedNode s opq = HydratedElement
+data HydratedPwNode s opq = HydratedPwElement
     { _hy_tag  :: String
-    , _hy_attr :: (Attributes s opq)
-    , _hy_kids :: [HydratedNode s opq]
+    , _hy_attr :: (PwAttributes s opq)
+    , _hy_kids :: [HydratedPwNode s opq]
     }
-    | HydratedTextNode String
+    | HydratedPwTextNode String
     deriving (Show)
 
-_hydrate :: s -> Node s opq -> HydratedNode s opq
-_hydrate s (Element a b c) =
-  HydratedElement a (b s) (fmap (\x -> hydrate s x) c)
-_hydrate s (TextNode t) = HydratedTextNode t
+_hydrate :: s -> PwNode s opq -> HydratedPwNode s opq
+_hydrate s (PwElement a b c) =
+  HydratedPwElement a (b s) (fmap (\x -> hydrate s x) c)
+_hydrate s (PwTextNode t) = HydratedPwTextNode t
 
-hydrate :: s -> (s -> Node s opq) -> HydratedNode s opq
+hydrate :: s -> (s -> PwNode s opq) -> HydratedPwNode s opq
 hydrate s f = _hydrate s (f s)
 
-stringifyAttributes :: Attributes state jsval -> String
-stringifyAttributes (MkAttributes __style __class __simple _) =
+stringifyPwAttributes :: PwAttributes state jsval -> String
+stringifyPwAttributes (MkPwAttributes __style __class __simple _) =
   intercalate " " $ filter
     (not . null)
     [ (if (HM.null __style)
@@ -107,8 +107,8 @@ stringifyAttributes (MkAttributes __style __class __simple _) =
       )
     ]
 
-_toHTML :: HydratedNode state jsval -> String
-_toHTML (HydratedElement tag attrs ch) =
+_toHTML :: HydratedPwNode state jsval -> String
+_toHTML (HydratedPwElement tag attrs ch) =
   "<"
     ++ tag
     ++ (if (null atts) then "" else " " ++ atts)
@@ -116,12 +116,12 @@ _toHTML (HydratedElement tag attrs ch) =
          then "/>"
          else ">" ++ (concat $ fmap _toHTML ch) ++ "</" ++ tag ++ ">"
        )
-  where atts = stringifyAttributes attrs
-_toHTML (HydratedTextNode txt) = txt
+  where atts = stringifyPwAttributes attrs
+_toHTML (HydratedPwTextNode txt) = txt
 
--- |Converts a Node to HTML.
+-- |Converts a PwNode to HTML.
 toHTML
-  :: (state -> Node state jsval) -- ^ A function that takes a state and produces a DOM
+  :: (state -> PwNode state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
   -> String -- ^ The resulting HTML
 toHTML domF state = _toHTML (hydrate state domF)

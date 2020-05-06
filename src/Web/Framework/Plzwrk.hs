@@ -19,9 +19,13 @@ module Web.Framework.Plzwrk
   , plzwrk'_
   , plzwrkSSR
   , toHTML
-  , Node(..)
-  , Attributes(..)
+  , PwNode(..)
+  , PwAttributes(..)
   , Browserful(..)
+  -- hsx
+  , hsx
+  , hsx'
+  , hmFromList
   -- util
   , (<.>)
   , wStyle
@@ -70,3 +74,4 @@ import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 import           Web.Framework.Plzwrk.Domify
 import           Web.Framework.Plzwrk.Util
+import           Web.Framework.Plzwrk.TH.QuoteHSX

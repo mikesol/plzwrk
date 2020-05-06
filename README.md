@@ -7,12 +7,11 @@ A Haskell front-end framework.
 ```haskell
 import           Web.Framework.Plzwrk
 import           Web.Framework.Plzwrk.Asterius
-import           Web.Framework.Plzwrk.Tag (p__)
 
 main :: IO ()
 main = do
   browser <- asteriusBrowser
-  plzwrk'_ (p__ "Hello world!") browser
+  plzwrk'_ [hsx|<p>Hello world!</p>|] browser
 ```
 
 See it [live](https://plzwrk-hello-world.surge.sh).

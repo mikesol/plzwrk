@@ -1,9 +1,7 @@
 module Web.Framework.Plzwrk.TH.HSX
-  ( Attribute(..)
-  , XML(..)
-  , parseXML
-  , AttrName
-  , AttrVal
+  ( HSXAttribute(..)
+  , HSX(..)
+  , parseHSX
   )
 where
 
@@ -18,21 +16,16 @@ import           Data.List                      ( foldl' )
 import           Text.Parsec
 import           Text.Parsec.String
 
-type AttrName = String
-type AttrVal = String
+data HSXAttribute = HSXStringAttribute String
+                 | HSXHaskellCodeAttribute String deriving (Show, Eq)
 
-data Attribute = Attribute (AttrName, AttrVal) deriving (Show, Eq)
-
-data XML =  Element String [Attribute] [XML]
-          | SelfClosingTag String [Attribute]
-          | Body String
+data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
+          | HSXSelfClosingTag String [(String, HSXAttribute)]
+          | HSXBody String
         deriving (Show, Eq)
 
-parseXML :: String -> Either ParseError XML
-parseXML = parse xml "xml"
-
-xml :: Parser XML
-xml = ws *> tag
+hsx :: Parser HSX
+hsx = tag
 
 tag = do
   char '<'
@@ -43,30 +36,61 @@ tag = do
   ws
   close <- try (string "/>" <|> string ">")
   if (length close) == 2
-  then return (SelfClosingTag name attr)
+  then return (HSXSelfClosingTag name attr)
   else do 
-        elementBody <- many elementBody
+        elementHSXBody <- many elementHSXBody
         endTag name
         ws
-        return (Element name attr elementBody)
+        return (HSXElement name attr elementHSXBody)
 
-elementBody = ws *> try tag <|> text
+elementHSXBody = ws *> try tag <|> text
 
 endTag :: String -> Parser String
 endTag str = string "</" *> string str <* char '>'
 
-text = Body <$> many1 (noneOf "><")
+text = HSXBody <$> many1 (noneOf "><")
+
+stringAttribute = do
+  char '"'
+  value <- many (noneOf ['"'])
+  char '"'
+  return $ HSXStringAttribute value
+
+haskellCodeAttribute = do
+  string "#{"
+  value <- manyTill anyChar (try (string "}#"))
+  return $ HSXHaskellCodeAttribute value
+
 
 attribute = do
   name <- many (noneOf "= />")  
   ws
   char '='
   ws
-  char '"'
-  value <- many (noneOf ['"'])
-  char '"'
+  value <- stringAttribute <|> haskellCodeAttribute 
   ws
-  return (Attribute (name,value))
+  return (name, value)
 
 ws :: Parser ()
 ws = void $ many $ oneOf " \t\r\n"
+
+parseHSX :: MonadFail m => (String, Int, Int) -> String -> m HSX
+parseHSX (file, line, col) s =
+    case runParser p () "" s of
+      Left err  -> fail $ show err
+      Right e   -> return e
+  where
+    p = do updatePosition file line col
+           ws
+           e <- hsx
+           ws
+           eof
+           return e
+
+updatePosition file line col = do
+   pos <- getPosition
+   setPosition $
+     (flip setSourceName) file $
+     (flip setSourceLine) line $
+     (flip setSourceColumn) col $
+     pos

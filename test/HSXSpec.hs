@@ -32,3 +32,23 @@ hsxSpec = describe "HSXParser" $ do
           (_handlers ((_elt_attrs (((_elt_children (dom 1)) !! 0) 1)) 0))
     res <- maybe (error "Could not find a click function") (\x -> x () 1) cf
     res `shouldBe` 42
+  it "Parses hsx with sub-hsx" $ do
+    let mylink = [hsx|<a click=#{(\_ x -> return $ x + 41)}#>Hello</a>|]
+    let dom = [hsx|
+            <h1 id="foo" style="position:absolute">
+                #{mylink}#
+            </h1>
+        |]
+    _elt_tag (dom 3) `shouldBe` "h1"
+    _elt_tag (((_elt_children (dom 5)) !! 0) 3) `shouldBe` "a"
+    1 `shouldBe` 1
+  it "Parses hsx'" $ do
+    let mylink = [hsx|<a click=#{(\_ x -> return $ x + 41)}#>Hello</a>|]
+    let dom = (\st -> [hsx'|
+            <h1 id="foo" style="position:absolute">
+                #{mylink}#
+            </h1>
+        |])
+    _elt_tag (dom 3) `shouldBe` "h1"
+    _elt_tag (((_elt_children (dom 5)) !! 0) 3) `shouldBe` "a"
+    1 `shouldBe` 1

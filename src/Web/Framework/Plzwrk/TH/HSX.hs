@@ -21,6 +21,7 @@ data HSXAttribute = HSXStringAttribute String
 
 data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXSelfClosingTag String [(String, HSXAttribute)]
+          | HSXHaskellCode String
           | HSXBody String
         deriving (Show, Eq)
 
@@ -37,13 +38,12 @@ tag = do
   close <- try (string "/>" <|> string ">")
   if (length close) == 2
   then return (HSXSelfClosingTag name attr)
-  else do 
-        elementHSXBody <- many elementHSXBody
-        endTag name
+  else do
+        elementHSXBody <- manyTill elementHSXBody (endTag name)
         ws
         return (HSXElement name attr elementHSXBody)
 
-elementHSXBody = ws *> try tag <|> text
+elementHSXBody = ws *> (try tag <|> try haskellCodeNode <|> text)
 
 endTag :: String -> Parser String
 endTag str = string "</" *> string str <* char '>'
@@ -56,10 +56,18 @@ stringAttribute = do
   char '"'
   return $ HSXStringAttribute value
 
-haskellCodeAttribute = do
+haskellCodeAttr = do
   string "#{"
-  value <- manyTill anyChar (try (string "}#"))
+  value <- manyTill anyChar (string "}#")
+  ws
   return $ HSXHaskellCodeAttribute value
+
+haskellCodeNode :: Parser HSX
+haskellCodeNode = do
+  string "#{"
+  value <- manyTill anyChar (string "}#")
+  ws
+  return $ HSXHaskellCode value
 
 
 attribute = do
@@ -67,7 +75,7 @@ attribute = do
   ws
   char '='
   ws
-  value <- stringAttribute <|> haskellCodeAttribute 
+  value <- stringAttribute <|> haskellCodeAttr
   ws
   return (name, value)
 

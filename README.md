@@ -48,7 +48,7 @@ asterius@hostname:/project$ cd <inst-dir> && ahc-dist --input-exe <exec-name> --
 The main documentation for `plzwrk` is on [hackage](https://hackage.haskell.org/package/plzwrk). The four importable modules are:
 
 - `Web.Frameworks.Plzwrk` for the basic functions
-- `Web.Frameworks.Plzwrk.Tag` for helper functions to make takes like `input` or `br`.
+- `Web.Frameworks.Plzwrk.Tag` for helper functions to make takes like `input` or `br` if you are not using `hsx`.
 - `Web.Frameworks.Plzwrk.MockJSVal` to use a mock browser.
 - `Web.Frameworks.Plzwrk.Asterius` to use a bindings for a real browser courtesy of [Asterius](https://github.com/tweag/asterius).
 
@@ -62,6 +62,9 @@ The main documentation for `plzwrk` is on [hackage](https://hackage.haskell.org/
 data MyState = MkMyState { _name :: Text, age :: Int, _tags :: [Text] }
 
 -- Function hydrating a DOM with elementse from the state
+makeP = (\name age -> [hsx'|<p>#t{concat [name, " is the name and ", show age, " is my age."]}#</p>|] <$> _name <*> _age
+
+-- The same function using functional tags instead of hsx
 makeP = (\name age -> p'__ concat [name, " is the name and ", show age, " is my age."]) <$> _name <*> _age
 ```
 

@@ -23,6 +23,7 @@ data HSXAttribute = HSXStringAttribute String
 data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXSelfClosingTag String [(String, HSXAttribute)]
           | HSXHaskellCode String
+          | HSXHaskellText String
           | HSXBody String
         deriving (Show, Eq)
 
@@ -44,7 +45,7 @@ tag = do
         ws
         return (HSXElement name attr elementHSXBody)
 
-elementHSXBody = ws *> (try tag <|> try haskellCodeNode <|> text)
+elementHSXBody = ws *> (try tag <|> try haskellCodeNode <|> try haskellTxtNode <|> text)
 
 endTag :: String -> Parser String
 endTag str = string "</" *> string str <* char '>'
@@ -76,6 +77,13 @@ haskellCodeNode = do
   value <- manyTill anyChar (string "}#")
   ws
   return $ HSXHaskellCode value
+
+haskellTxtNode :: Parser HSX
+haskellTxtNode = do
+  string "#t{"
+  value <- manyTill anyChar (string "}#")
+  ws
+  return $ HSXHaskellText value
 
 
 attribute = do

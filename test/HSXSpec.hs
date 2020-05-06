@@ -38,10 +38,12 @@ hsxSpec = describe "HSXParser" $ do
     let dom = [hsx|
             <h1 id="foo" style="position:absolute">
                 #e{mylink}#
+                #t{"hello world"}#
             </h1>
         |]
     _elt_tag (dom 3) `shouldBe` "h1"
     _elt_tag (((_elt_children (dom 5)) !! 0) 3) `shouldBe` "a"
+    _tn_text (((_elt_children (dom 5)) !! 1) 3) `shouldBe` "hello world"
     1 `shouldBe` 1
   it "Parses hsx'" $ do
     let mylink = [hsx|<a click=#c{(\_ x -> return $ x + 41)}#>Hello</a>|]

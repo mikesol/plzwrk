@@ -74,15 +74,14 @@ HTML-creation functions can be nested, allowing for powerful abstractions.
 nested = div_ (take 10 $ repeat makeP)
 ```
 
-HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments and no apostrophe (ie `div`) if they don't. Additionally, tags that do not have any attributes (class, style etc) are marked with a trailing underscore (`div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (`p__ "hello"`).
-
-The HTML-creation function itself should be pure with type `(s -> Node s opq)`, where `s` is the type of the state and `opq` is the type of the opaque pointer used to represent a JavaScript value.  `opq` will rarely need to be provided manually as it is induced from the compiler based on the `Browserful` being used (ie `asteriusBrowser`).
+HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments and no apostrophe (ie `div`) if they don't. The same is true of `hsx`, ie `[hsx|<br />|]` versus `(s -> [hsx'|<br />|])`. Additionally, HTML-creation functions for tags that do not have any attributes (class, style etc) are marked with a trailing underscore (`div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (`p__ "hello"`).
 
 Event handlers take two arguments - an opaque pointer to the event and the current state - and return a new state (which could just be the original state) in the `IO` monad. For example, if the state is an integer, a valid event handler could be:
 
 ```
 eh :: opq -> Int -> IO Int
 eh _ i = pure $ i + 1
+dom = [hsx|<button click=#c{eh}#>Click here</button>|]
 ```
 
 To handle events (ie extract values from input events, etc) you can use one of the functions exported by `Web.Framework.Plzwrk`. Please see the [hackage documentation](https://hackage.haskell.org/package/plzwrk) for more information.

@@ -1,10 +1,14 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-#if defined(PLZWRK_ENABLE_ASTERIUS)
 {-# LANGUAGE QuasiQuotes #-}
 
-
+#if defined(PLZWRK_ENABLE_ASTERIUS)
 import           Asterius.Types
+import           Web.Framework.Plzwrk.Asterius
+# else
+import           Web.Framework.Plzwrk.MockJSVal
+# endif
+
 import           Control.Monad
 import           Data.HashMap.Strict     hiding ( null )
 import           Data.IORef
@@ -16,7 +20,6 @@ import           Prelude                 hiding ( div
                                                 , span
                                                 )
 import           Web.Framework.Plzwrk
-import           Web.Framework.Plzwrk.Asterius
 import           Web.Framework.Plzwrk.Tag
                                          hiding ( main
                                                 , main_
@@ -96,7 +99,12 @@ loginText =
 
 main :: IO ()
 main = do
+
+#if defined(PLZWRK_ENABLE_ASTERIUS)
   browser <- asteriusBrowser
+# else
+  browser <- makeMockBrowser
+# endif
   -- add some css!
   _head   <- (documentHead browser)
   _style  <- (documentCreateElement browser) "style"
@@ -332,7 +340,3 @@ button {
 }
   |]
 
-# else
-main :: IO ()
-main = print "If you're using ahc, please set -DPLZWRK_ENABLE_ASTERIUS as a flag to run this executable."
-# endif

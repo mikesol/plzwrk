@@ -1,5 +1,10 @@
 # Changelog for plzwrk
 
+## 0.0.0.5
+
+- Adds bounds for cabal packages
+- Explicity declares `Control.Monad.Fail` in `HSX.hs` to allow automated haddock builds.
+
 ## 0.0.0.4
 
 - Adds `hsx` and `hsx'` for `jsx`-like manipulation.

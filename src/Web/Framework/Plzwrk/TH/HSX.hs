@@ -65,27 +65,27 @@ haskellTxtAttr = do
   ws
   return $ HSXHaskellTxtAttribute value
 
+makeBracketed cmd contain = do
+  let start = ("#" <> cmd <> "{")
+  let end = "}#"
+  string start
+  value <- manyTill anyChar (string end)
+  ws
+  return $ if (contain) then start <> value <> end else value
 
 haskellCodeAttr = do
-  string "#c{"
-  value <- manyTill anyChar (string "}#")
-  ws
+  value <- makeBracketed "c" False
   return $ HSXHaskellCodeAttribute value
 
 haskellCodeNode :: Parser HSX
 haskellCodeNode = do
-  string "#e{"
-  value <- manyTill anyChar (string "}#")
-  ws
+  value <- makeBracketed "e" False
   return $ HSXHaskellCode value
 
 haskellTxtNode :: Parser HSX
 haskellTxtNode = do
-  string "#t{"
-  value <- manyTill anyChar (string "}#")
-  ws
+  value <- makeBracketed "t" False
   return $ HSXHaskellText value
-
 
 attribute = do
   name <- many (noneOf "= />")  

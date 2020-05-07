@@ -11,6 +11,7 @@ import           Control.Applicative            ( (<*)
                                                 , (<$)
                                                 )
 import           Control.Monad                  ( void )
+import           Control.Monad.Fail
 import           Data.Char
 import           Data.List                      ( foldl' )
 import           Text.Parsec

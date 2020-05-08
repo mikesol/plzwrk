@@ -60,7 +60,7 @@ elementHSXBody =
 endTag :: String -> Parser String
 endTag str = string "</" *> string str <* char '>'
 
-text = HSXBody <$> many1 (noneOf "<>")
+text = HSXBody <$> many1 (noneOf "><")
 
 stringAttribute = do
   char '"'

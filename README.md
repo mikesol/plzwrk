@@ -62,10 +62,16 @@ The main documentation for `plzwrk` is on [hackage](https://hackage.haskell.org/
 data MyState = MkMyState { _name :: Text, age :: Int, _tags :: [Text] }
 
 -- Function hydrating a DOM with elementse from the state
-makeP = (\name age -> [hsx'|<p>#t{concat [name, " is the name and ", show age, " is my age."]}#</p>|]) <$> _name <*> _age
+makeP = (\name age ->
+  [hsx'|<p>#t{concat [name, " is the name and ", show age, " is my age."]}#</p>|])
+    <$> _name
+    <*> _age
 
 -- The same function using functional tags instead of hsx
-makeP = (\name age -> p'__ concat [name, " is the name and ", show age, " is my age."]) <$> _name <*> _age
+makeP = (\name age ->
+    p'__ concat [name, " is the name and ", show age, " is my age."])
+      <$> _name
+      <*> _age
 ```
 
 HTML-creation functions can be nested, allowing for powerful abstractions.

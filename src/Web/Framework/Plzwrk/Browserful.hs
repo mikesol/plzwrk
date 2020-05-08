@@ -61,7 +61,7 @@ data Browserful jsval = Browserful
   , documentHead                   :: IO jsval
 
     -- | Calls the browser's fetch command
-  , fetch                          :: String -> (RequestInit jsval) -> IO jsval
+  , fetch                          :: String -> RequestInit jsval -> IO jsval
 
     -- | Gets a JavaScript property, returning @Nothing@ if the object being called is null or undefined.
   , getPropertyAsOpaque            :: jsval -> String -> IO (Maybe jsval)

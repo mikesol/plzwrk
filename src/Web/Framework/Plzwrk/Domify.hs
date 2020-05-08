@@ -16,7 +16,10 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
 import qualified Data.HashMap.Strict           as HM
 import           Data.IORef
-import           Data.Maybe                     ( catMaybes )
+import           Data.Maybe                     ( fromMaybe
+                                                , catMaybes
+                                                , mapMaybe
+                                                )
 import qualified Data.Set                      as S
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
@@ -60,15 +63,15 @@ data AttributeHack = MkAttributeHack
 
 getStyleFrom :: [(String, String)] -> HM.HashMap String String
 getStyleFrom l = HM.unions
-  (fmap stylishAttributes $ filter (\(x, _) -> x == "style") l) where
+  (fmap stylishAttributes (filter (\(x, _) -> x == "style") l)) where
   stylishAttributes :: (String, String) -> HM.HashMap String String
   stylishAttributes (_, y) = HM.fromList $ fmap
-    (\s -> let ss = splitOn ":" s in (ss !! 0, ss !! 1))
-    (filter (\x -> elem ':' x) (splitOn ";" y))
+    (\s -> let ss = splitOn ":" s in (head ss, ss !! 1))
+    (filter (elem ':') (splitOn ";" y))
 
 getClassFrom :: [(String, String)] -> S.Set String
 getClassFrom l = S.unions
-  (fmap classyAttributes $ filter (\(x, _) -> x == "class") l) where
+  (fmap classyAttributes (filter (\(x, _) -> x == "class") l)) where
   classyAttributes :: (String, String) -> S.Set String
   classyAttributes (_, y) = S.fromList (words y)
 
@@ -76,7 +79,7 @@ getSimpleFrom :: [(String, String)] -> HM.HashMap String String
 getSimpleFrom l = HM.unions (fmap simplyAttributes l) where
   simplyAttributes :: (String, String) -> HM.HashMap String String
   simplyAttributes (x, y) =
-    if (x /= "class" && x /= "style") then HM.singleton x y else HM.empty
+    if x /= "class" && x /= "style" then HM.singleton x y else HM.empty
 
 attributeListToSplitAttrs :: [(String, String)] -> AttributeHack
 attributeListToSplitAttrs fl =
@@ -84,18 +87,18 @@ attributeListToSplitAttrs fl =
 
 isDText :: (String, DomifiedAttribute jsval) -> Maybe (String, String)
 isDText (k, DomifiedTextAttribute v) = Just (k, v)
-isDText _                         = Nothing
+isDText _                            = Nothing
 
 isPwText :: (String, PwAttribute s jsval) -> Maybe (String, String)
 isPwText (k, PwTextAttribute v) = Just (k, v)
-isPwText _                   = Nothing
+isPwText _                      = Nothing
 
 
 daToF :: [(String, DomifiedAttribute jsval)] -> [(String, String)]
-daToF l = catMaybes $ fmap isDText l
+daToF = mapMaybe isDText
 
 paToF :: [(String, PwAttribute s jsval)] -> [(String, String)]
-paToF l = catMaybes $ fmap isPwText l
+paToF = mapMaybe isPwText
 
 nodesEq
   :: String
@@ -110,7 +113,11 @@ nodesEq t0 t1 a0 a1 =
        )
 
 padr :: Int -> a -> [a] -> [a]
-padr i v l = if (length l >= i) then l else padr i v (l ++ [v])
+padr i v l = if length l >= i then l else padr i v (l ++ [v])
+
+getOpaque :: DomifiedPwNode jsval -> jsval
+getOpaque (DomifiedPwElement _ _ _ x) = x
+getOpaque (DomifiedPwTextNode _ x   ) = x
 
 reconcile
   :: Bool
@@ -125,19 +132,18 @@ reconcile
        IO
        (Maybe (DomifiedPwNode jsval))
 reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedPwElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedPwElement maybeNewTag maybeNewAttributes maybeNewChildren))
-  = if (nodesEq currentTag maybeNewTag currentAttributes maybeNewAttributes)
+  = if nodesEq currentTag maybeNewTag currentAttributes maybeNewAttributes
     then
       (do
         let maxlen = max (length maybeNewChildren) (length currentChildren)
         newChildren <- sequence $ getZipList
-          (   (reconcile touchDOM
-                         refToOldStuff
-                         domCreationF
-                         currentNode
-                         topLevelNode
-              )
-          <$> (ZipList (padr maxlen Nothing (fmap Just currentChildren)))
-          <*> (ZipList (padr maxlen Nothing (fmap Just maybeNewChildren)))
+          (   reconcile touchDOM
+                        refToOldStuff
+                        domCreationF
+                        currentNode
+                        topLevelNode
+          <$> ZipList (padr maxlen Nothing (fmap Just currentChildren))
+          <*> ZipList (padr maxlen Nothing (fmap Just maybeNewChildren))
           )
         currentAttributes <- mapM
           (hydratedAttrToDomifiedAttr refToOldStuff domCreationF parentNode)
@@ -148,7 +154,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
               mapM_ (removeEventHandler currentNode) currentAttributes
               mapM_ (setEventHandler currentNode)    currentAttributes
             )
-          else (pure ())
+          else pure ()
         return $ Just
           (DomifiedPwElement currentTag
                              currentAttributes
@@ -168,7 +174,7 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
         return $ Just res
       )
 reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just currentDomifiedString@(DomifiedPwTextNode currentString currentNode)) (Just maybeNewNode@(HydratedPwTextNode maybeNewString))
-  = if (currentString == maybeNewString)
+  = if currentString == maybeNewString
     then pure (Just currentDomifiedString)
     else
       (do
@@ -211,24 +217,15 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode Nothing (J
                   Nothing
                   maybeNewNode
     return $ Just res
-reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedPwElement _ _ _ currentNode)) Nothing
-  = if (touchDOM)
+reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just domifiedPwNode) Nothing
+  = if touchDOM
     then
       (do
         _nodeRemoveChild <- asks nodeRemoveChild
-        liftIO $ _nodeRemoveChild parentNode currentNode
+        liftIO $ _nodeRemoveChild parentNode (getOpaque domifiedPwNode)
         return Nothing
       )
-    else (pure Nothing)
-reconcile touchDOM refToOldStuff domCreationF parentNode _ (Just (DomifiedPwTextNode _ currentNode)) Nothing
-  = if (touchDOM)
-    then
-      (do
-        _nodeRemoveChild <- asks nodeRemoveChild
-        liftIO $ _nodeRemoveChild parentNode currentNode
-        return Nothing
-      )
-    else (pure Nothing)
+    else pure Nothing
 reconcile _ _ _ _ _ _ _ = error "Inconsistent state"
 
 reconcileAndAdd = reconcile True
@@ -278,11 +275,11 @@ hydratedAttrToDomifiedAttr
   -> (String, PwAttribute state jsval)
   -> ReaderT (Browserful jsval) IO (String, DomifiedAttribute jsval)
 hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode (k, PwTextAttribute t)
-  = return $ (k, DomifiedTextAttribute t)
+  = return (k, DomifiedTextAttribute t)
 hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode (k, PwFunctionAttribute f)
   = do
     func <- eventable refToOldStuff domCreationF topLevelNode f
-    return $ (k, DomifiedFunctionAttribute func)
+    return (k, DomifiedFunctionAttribute func)
 
 setAtt
   :: jsval
@@ -341,22 +338,19 @@ domify touchDOM refToOldStuff domCreationF parentNode topLevelNode replacing (Hy
     newAttributes          <- mapM
       (hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode)
       attrs
-    if touchDOM then (mapM_ (setAtt newNode) newAttributes) else (pure ())
+    if touchDOM then mapM_ (setAtt newNode) newAttributes else pure ()
     newChildren <- mapM
       (domify touchDOM refToOldStuff domCreationF newNode topLevelNode Nothing)
       children
     if touchDOM
-      then
-        (do
-          maybe
-            (liftIO $ _nodeAppendChild parentNode newNode)
-            (\x -> do
-              liftIO $ _nodeInsertBefore parentNode newNode x
-              liftIO $ _nodeRemoveChild parentNode x
-            )
-            replacing
+      then maybe
+        (liftIO $ _nodeAppendChild parentNode newNode)
+        (\x -> do
+          liftIO $ _nodeInsertBefore parentNode newNode x
+          liftIO $ _nodeRemoveChild parentNode x
         )
-      else (pure ())
+        replacing
+      else pure ()
     liftIO $ return (DomifiedPwElement tag newAttributes newChildren newNode)
 domify touchDOM _ _ parentNode topLevelNode replacing (HydratedPwTextNode text)
   = do
@@ -367,17 +361,14 @@ domify touchDOM _ _ parentNode topLevelNode replacing (HydratedPwTextNode text)
     _documentCreateTextNode <- asks documentCreateTextNode
     newTextNode             <- liftIO $ _documentCreateTextNode text
     if touchDOM
-      then
-        (do
-          maybe
-            (liftIO $ _nodeAppendChild parentNode newTextNode)
-            (\x -> do
-              liftIO $ _nodeInsertBefore parentNode newTextNode x
-              liftIO $ _nodeRemoveChild parentNode x
-            )
-            replacing
+      then maybe
+        (liftIO $ _nodeAppendChild parentNode newTextNode)
+        (\x -> do
+          liftIO $ _nodeInsertBefore parentNode newTextNode x
+          liftIO $ _nodeRemoveChild parentNode x
         )
-      else (pure ())
+        replacing
+      else pure ()
     liftIO $ return (DomifiedPwTextNode text newTextNode)
 
 getChildren :: DomifiedPwNode jsval -> [DomifiedPwNode jsval]
@@ -396,19 +387,19 @@ transformFromCurrentDom
 transformFromCurrentDom parentNode children = do
   _nodeChildNodes <- asks nodeChildNodes
   _kids           <- liftIO $ _nodeChildNodes parentNode
-  let kids = maybe [] id _kids
+  let kids = fromMaybe [] _kids
   newChildren <- sequence $ getZipList
     (   transformFromCurrentDom
-    <$> (ZipList kids)
-    <*> (ZipList $ fmap getChildren children)
+    <$> ZipList kids
+    <*> ZipList (fmap getChildren children)
     )
-  sequence
-    $ getZipList (setEventHandlers_ <$> (ZipList kids) <*> (ZipList children))
+  sequence_
+    $ getZipList (setEventHandlers_ <$> ZipList kids <*> ZipList children)
   return $ getZipList
     (   (\cur chldrn ptr -> cur { _dom_kids = chldrn, _dom_ptr = ptr })
-    <$> (ZipList children)
-    <*> (ZipList newChildren)
-    <*> (ZipList kids)
+    <$> ZipList children
+    <*> ZipList newChildren
+    <*> ZipList kids
     )
 
 addHandlers
@@ -417,7 +408,7 @@ addHandlers
   -> ReaderT (Browserful jsval) IO (DomifiedPwNode jsval)
 addHandlers parentNode curDom = do
   transformed <- transformFromCurrentDom parentNode [curDom]
-  return $ (transformed !! 0)
+  return (head transformed)
 
 __plzwrk
   :: Bool
@@ -439,9 +430,8 @@ __plzwrk cleanDOM domF state parentNode env = do
     )
     env
   writeIORef refToOldStuff (OldStuff state newDom)
-  if (not cleanDOM)
-    then
-      (maybe
+  if not cleanDOM
+    then maybe
         (pure Nothing)
         (\y -> do
           withHandlers <- runReaderT (addHandlers parentNode y) env
@@ -449,7 +439,6 @@ __plzwrk cleanDOM domF state parentNode env = do
           return $ Just withHandlers
         )
         newDom
-      )
     else pure newDom
 
 _plzwrk
@@ -460,7 +449,7 @@ _plzwrk
   -> String
   -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk cleanDOM domF state env nodeId = do
-  parentNode <- (documentGetElementById env) nodeId
+  parentNode <- documentGetElementById env nodeId
   maybe (error ("Node with id not in DOM: " <> show nodeId))
         (\x -> __plzwrk cleanDOM domF state x env)
         parentNode
@@ -499,7 +488,7 @@ _plzwrk'
   -> Browserful jsval
   -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk' cleanDOM domF state env = do
-  parentNode <- (documentBody env)
+  parentNode <- documentBody env
   __plzwrk cleanDOM domF state parentNode env
 
 -- |A variation of plzwrk that inserts the node as a child of the document's body.
@@ -516,9 +505,9 @@ plzwrkSSR' domF state env = void $ _plzwrk' False domF state env
 -- |A variation of plzwrk that takes no state.
 
 plzwrk'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
-plzwrk'_ domF env = plzwrk' domF () env
+plzwrk'_ domF = plzwrk' domF ()
 
 -- |A variation of plzwrkSSR that takes no state.
 
 plzwrkSSR'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
-plzwrkSSR'_ domF env = plzwrkSSR' domF () env
+plzwrkSSR'_ domF = plzwrkSSR' domF ()

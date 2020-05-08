@@ -50,7 +50,7 @@ tag = do
   attr <- many attribute
   ws
   close <- try (string "/>" <|> string ">")
-  if (length close) == 2
+  if length close == 2
     then return (HSXSelfClosingTag name attr)
     else do
       elementBody <- many elementHSXBody
@@ -86,12 +86,12 @@ haskellTxtAttr = do
   return $ HSXHaskellTxtAttribute value
 
 makeBracketed cmd contain = do
-  let start = ("#" <> cmd <> "{")
+  let start = "#" <> cmd <> "{"
   let end   = "}#"
   string start
   value <- manyTill anyChar (string end)
   ws
-  return $ if (contain) then start <> value <> end else value
+  return $ if contain then start <> value <> end else value
 
 haskellCodeAttr = do
   value <- makeBracketed "c" False
@@ -117,7 +117,7 @@ attribute = do
   ws
   char '='
   ws
-  value <- stringAttribute <|> (try haskellCodeAttr) <|> haskellTxtAttr
+  value <- stringAttribute <|> try haskellCodeAttr <|> haskellTxtAttr
   ws
   return (name, value)
 

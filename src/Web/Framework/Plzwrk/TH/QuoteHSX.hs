@@ -81,7 +81,13 @@ hsxToExpQ lam returnAsList (HSXElement tag attrs elts) = asList
     (TH.conE (TH.mkName "PwElement"))
     [ TH.litE (TH.StringL tag)
     , TH.listE (fmap hsxAttributeToExpQ attrs)
-    , foldl TH.appE (TH.varE (TH.mkName "foldr")) [(TH.varE (TH.mkName "plusplus")), (TH.conE (TH.mkName "[]")), TH.listE (fmap (\x -> hsxToExpQ True True x) elts)]
+    , foldl
+      TH.appE
+      (TH.varE (TH.mkName "foldr"))
+      [ TH.varE (TH.mkName "plusplus")
+      , TH.conE (TH.mkName "[]")
+      , TH.listE (fmap (hsxToExpQ True True) elts)
+      ]
     ]
   )
 hsxToExpQ lam returnAsList (HSXSelfClosingTag tag attrs) = asList
@@ -89,9 +95,9 @@ hsxToExpQ lam returnAsList (HSXSelfClosingTag tag attrs) = asList
   (wrapInLambda lam $ foldl
     TH.appE
     (TH.conE (TH.mkName "PwElement"))
-    [ (TH.litE (TH.StringL tag))
+    [ TH.litE (TH.StringL tag)
     , TH.listE (fmap hsxAttributeToExpQ attrs)
-    , (TH.conE (TH.mkName "[]"))
+    , TH.conE (TH.mkName "[]")
     ]
   )
 hsxToExpQ lam returnAsList (HSXBody b) = asList

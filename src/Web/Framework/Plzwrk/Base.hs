@@ -15,9 +15,9 @@ import           Data.List
 import qualified Data.HashMap.Strict           as HM
 import qualified Data.Set                      as S
 
-cssToStyle :: (HM.HashMap String String) -> String
+cssToStyle :: HM.HashMap String String -> String
 cssToStyle css =
-  (intercalate ";" $ fmap (\(x, y) -> x <> ":" <> y) (HM.toList css))
+  intercalate ";" $ fmap (\(x, y) -> x <> ":" <> y) (HM.toList css)
 
 
 -- |PwAttribute for a DOM PwNode.
@@ -62,7 +62,7 @@ instance Show (PwAttribute s opq) where
 
 data PwNode s opq = PwElement
     { _elt_tag :: String
-    , _elt_attrs :: [(String, (s -> PwAttribute s opq))]
+    , _elt_attrs :: [(String, s -> PwAttribute s opq)]
     , _elt_children :: [s -> PwNode s opq]
     } | PwTextNode { _tn_text :: String }
 
@@ -80,7 +80,7 @@ data HydratedPwNode s opq = HydratedPwElement
 
 _hydrate :: s -> PwNode s opq -> HydratedPwNode s opq
 _hydrate s (PwElement a b c) =
-  HydratedPwElement a (fmap (\(x, y) -> (x, y s)) b) (fmap (\x -> hydrate s x) c)
+  HydratedPwElement a (fmap (\(x, y) -> (x, y s)) b) (fmap (hydrate s) c)
 _hydrate s (PwTextNode t) = HydratedPwTextNode t
 
 hydrate :: s -> (s -> PwNode s opq) -> HydratedPwNode s opq
@@ -98,13 +98,13 @@ _toHTML :: HydratedPwNode state jsval -> String
 _toHTML (HydratedPwElement tag attrs ch) =
   "<"
     ++ tag
-    ++ (if (null atts) then "" else " " ++ atts)
-    ++ (if (null ch)
+    ++ (if null atts then "" else " " ++ atts)
+    ++ (if null ch
          then "/>"
-         else ">" ++ (concat $ fmap _toHTML ch) ++ "</" ++ tag ++ ">"
+         else ">" ++ concatMap _toHTML ch ++ "</" ++ tag ++ ">"
        )
  where
-  atts = intercalate " " $ fmap
+  atts = unwords $ fmap
     (\(x, y) -> x <> "=\"" <> stringifyPwAttribute y <> "\"")
     (filter (isText . snd) attrs)
 _toHTML (HydratedPwTextNode txt) = txt

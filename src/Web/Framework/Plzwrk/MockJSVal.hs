@@ -1,15 +1,27 @@
 {-|
+
 Module      : Web.Framework.Plzwrk.MockJSVal
+
 Description : Mock browser for testing
+
 Copyright   : (c) Mike Solomon 2020
+
 License     : GPL-3
+
 Maintainer  : mike@meeshkan.com
+
 Stability   : experimental
+
 Portability : POSIX, Windows
 
+
+
 This module exports a mock browser called
+
 @defaultInternalBrowser@ used in plzwrk's tests
+
 and that can be used in your unit tests as well.
+
 -}
 module Web.Framework.Plzwrk.MockJSVal
   ( MockJSVal(..)
@@ -132,10 +144,10 @@ _eventTargetAddEventListener
   -> IO (MockAttributes, [LogEvent], [LogEvent])
 _eventTargetAddEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
   = pure
-    $ ( MockAttributes atts $ insert evt fn lstns
-      , logn <> [ListenerReceived evt m]
-      , logm <> [AddedAsListenerTo n]
-      )
+    ( MockAttributes atts $ insert evt fn lstns
+    , logn <> [ListenerReceived evt m]
+    , logm <> [AddedAsListenerTo n]
+    )
 _eventTargetAddEventListener _ _ _ =
   error "Can only add event listener to element"
 
@@ -143,19 +155,17 @@ _elementSetAttribute
   :: MockJSVal -> String -> String -> IO (MockAttributes, [LogEvent])
 _elementSetAttribute (MockJSElement n _ (MockAttributes atts lstns) _ logn) nm attr
   = pure
-    $ ( MockAttributes (insert nm attr atts) lstns
-      , logn <> [AttributeReceived nm attr]
-      )
+    ( MockAttributes (insert nm attr atts) lstns
+    , logn <> [AttributeReceived nm attr]
+    )
 _elementSetAttribute _ _ _ = error "Can only add event listener to element"
 
 _nodeAppendChild
   :: MockJSVal -> MockJSVal -> IO ([MockJSVal], [LogEvent], [LogEvent])
 _nodeAppendChild (MockJSElement n _ _ kids logn) kid@(MockJSElement m _ _ _ logm)
-  = pure
-    $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
+  = pure (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
 _nodeAppendChild (MockJSElement n _ _ kids logn) kid@(MockJSTextNode m _ logm)
-  = pure
-    $ (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
+  = pure (kids <> [kid], logn <> [ChildReceived m], logm <> [AddedAsChildTo n])
 _nodeAppendChild _ _ = error "Can only append element to element"
 
 __nodeRemoveChild
@@ -168,12 +178,11 @@ __nodeRemoveChild
   -> IO ([MockJSVal], [LogEvent], [LogEvent])
 __nodeRemoveChild n kids logn kid m logm = maybe
   (error ("Existing item " <> show m <> " not child of " <> show n))
-  (\x ->
-    pure
-      $ ( take x kids <> drop (x + 1) kids
-        , logn <> [RemovedNode m]
-        , logm <> [RemovedAsNodeFrom n]
-        )
+  (\x -> pure
+    ( take x kids <> drop (x + 1) kids
+    , logn <> [RemovedNode m]
+    , logm <> [RemovedAsNodeFrom n]
+    )
   )
   (elemIndex (_ptr kid) (fmap _ptr kids))
 
@@ -193,12 +202,11 @@ _eventTargetRemoveEventListener
 _eventTargetRemoveEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
   = maybe
     (error ("Listener " <> show m <> " not child of " <> show n))
-    (\x ->
-      pure
-        $ ( MockAttributes atts $ delete evt lstns
-          , logn <> [RemovedListener evt m]
-          , logm <> [RemovedAsListenerFrom n]
-          )
+    (\x -> pure
+      ( MockAttributes atts $ delete evt lstns
+      , logn <> [RemovedListener evt m]
+      , logm <> [RemovedAsListenerFrom n]
+      )
     )
     (lookup evt lstns)
 _eventTargetRemoveEventListener _ _ _ =
@@ -222,13 +230,12 @@ _nodeInsertBeforeInternal
        )
 _nodeInsertBeforeInternal n kids logn newI m logm existingI l logl = maybe
   (error ("Existing item " <> show l <> " not child of " <> show n))
-  (\x ->
-    pure
-      $ ( take x kids <> [newI] <> drop x kids
-        , logn <> [InsertedChildBefore m l]
-        , logm <> [InsertedAsChildBefore n l]
-        , logl <> [ElementAddedBefore m]
-        )
+  (\x -> pure
+    ( take x kids <> [newI] <> drop x kids
+    , logn <> [InsertedChildBefore m l]
+    , logm <> [InsertedAsChildBefore n l]
+    , logl <> [ElementAddedBefore m]
+    )
   )
   (elemIndex (_ptr existingI) (fmap _ptr kids))
 
@@ -269,18 +276,20 @@ dummyClick :: MockJSVal -> IO ()
 -- todo give real number
 
 
+
 dummyClick (MockJSFunction _ f _) = f $ MockMouseEvent (-1)
 
 
 _htmlElemenetClick :: MockJSVal -> IO ()
 _htmlElemenetClick (MockJSElement _ _ (MockAttributes _ evts) _ _) = do
   let oc = lookup "click" evts
-  maybe (pure ()) (\x -> dummyClick x) oc
+  maybe (pure ()) dummyClick oc
 
 _htmlElemenetClick _ = error "Can only free function"
 
 
 --------------
+
 
 
 
@@ -294,8 +303,8 @@ look :: IORef MockBrowserInternal -> Int -> IO MockJSVal
 look env elt = do
   r <- readIORef env
   let bz = unBrowser r
-  maybe (error $ "Cannot find object pointer in env: " <> (show elt))
-        (\x -> return x)
+  maybe (error $ "Cannot find object pointer in env: " <> show elt)
+        return
         (lookup elt bz)
 
 incr :: IORef MockBrowserInternal -> IO Int
@@ -338,6 +347,7 @@ _'documentCreateElement env tg = do
   return i
 
 ----------------------
+
 _jsValFrom
   :: (Int -> s -> [LogEvent] -> MockJSVal)
   -> IORef MockBrowserInternal
@@ -357,6 +367,7 @@ _'jsValFromInt = _jsValFrom MockJSInt
 _'jsValFromString = _jsValFrom MockJSString
 
 ----------------------
+
 
 _'mathRandom :: IORef MockBrowserInternal -> IO Double
 _'mathRandom _ = pure 0.5
@@ -380,15 +391,15 @@ _'getPropertyAsOpaque env i s
   | s == "tagName" = do
     tn <- _'elementTagName env i
     _v <- _'jsValFromString env tn
-    (return . Just) $ _v
+    (return . Just) _v
   | s == "textContent" = do
     tc <- _'nodeTextContent env i
     _v <- _'jsValFromString env tc
-    (return . Just) $ _v
+    (return . Just) _v
   | s == "childNodes" = do
     cn <- _'nodeChildNodes env i
-    _v <-_'jsValFromArray env cn
-    (return . Just) $ _v
+    _v <- _'jsValFromArray env cn
+    (return . Just) _v
   | otherwise =  error
   $  "This property is not implemented yet in MockJSVal: "
   <> s
@@ -470,9 +481,8 @@ _'setValue env o k v = do
 
 
 _'fetch :: IORef MockBrowserInternal -> String -> RequestInit Int -> IO Int
-_'fetch env _ _ = do
-  _o <- _'makeObject env
-  return _o -- return an empty object for now
+_'fetch env _ _ = _'makeObject env
+
 
 _'elementTagName :: IORef MockBrowserInternal -> Int -> IO String
 _'elementTagName env elt = do
@@ -489,8 +499,8 @@ _'nodeTextContent env elt = do
   _elt <- look env elt
   _nodeTextContent _elt
 
-_'_freeCallback :: IORef MockBrowserInternal -> Int -> IO ()
-_'_freeCallback env fn = do
+_'freeCallback :: IORef MockBrowserInternal -> Int -> IO ()
+_'freeCallback env fn = do
   _fn    <- look env fn
   newLog <- __freeCallback _fn
   wrt env fn $ _withNewLog _fn newLog
@@ -502,25 +512,25 @@ _'htmlElementClick env elt = do
 
 idEq :: String -> MockJSVal -> Bool
 idEq txt (MockJSElement _ _ (MockAttributes atts _) _ _) =
-  Just txt == (lookup "id" atts)
+  Just txt == lookup "id" atts
 idEq _ _ = False
 
 _'documentBody :: IORef MockBrowserInternal -> IO Int
 _'documentBody ref = do
   mb <- readIORef ref
   let browser = unBrowser mb
-  pt <- maybe (error "No body.") (\x -> pure $ _ptr x) $ lookup 0 browser
-  return pt
+  maybe (error "No body.") (pure . _ptr) (lookup 0 browser)
 
 _'documentHead :: IORef MockBrowserInternal -> IO Int
 _'documentHead ref = pure (-1) -- need to implement in mock?
 
 
+
 _documentGetElementByIdInternal :: MockJSVal -> String -> [Int]
 _documentGetElementByIdInternal jsv@(MockJSElement _ _ _ ch _) txt =
-  if (idEq txt jsv)
+  if idEq txt jsv
     then [_ptr jsv]
-    else (foldr (++) [] $ fmap (\x -> _documentGetElementByIdInternal x txt) ch)
+    else concatMap (`_documentGetElementByIdInternal` txt) ch
 _documentGetElementByIdInternal _ _ = []
 
 _'documentGetElementById
@@ -529,7 +539,7 @@ _'documentGetElementById env txt = do
   body  <- _'documentBody env
   _body <- look env body
   let elts = _documentGetElementByIdInternal _body txt
-  return $ if (null elts) then (Nothing) else (Just $ head elts)
+  return $ if null elts then Nothing else Just $ head elts
 
 _'nodeInsertBefore :: IORef MockBrowserInternal -> Int -> Int -> Int -> IO ()
 _'nodeInsertBefore env parent newItem existingItem = do
@@ -542,10 +552,10 @@ _'nodeInsertBefore env parent newItem existingItem = do
   wrt env newItem $ _withNewLog _newItem newLogNewItem
   wrt env existingItem $ _withNewLog _existingItem newLogExistingItem
 
-_'_makeHaskellCallback :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
-_'_makeHaskellCallback env cb = do
+_'makeHaskellCallback :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback env cb = do
   i <- incr env
-  let elt = MockJSFunction i (\x -> cb $ _ptr x) [MadeCallback i]
+  let elt = MockJSFunction i (cb . _ptr) [MadeCallback i]
   wrt env i elt
   return i
 
@@ -660,7 +670,7 @@ makeMockBrowserWithContext r = return Browserful
   , documentGetElementById = _'documentGetElementById r
   , documentHead           = _'documentHead r
   , fetch                  = _'fetch r
-  , _freeCallback          = _'_freeCallback r
+  , _freeCallback          = _'freeCallback r
   , getPropertyAsOpaque    = _'getPropertyAsOpaque r
   , jsValFromArray         = _'jsValFromArray r
   , jsValFromBool          = _'jsValFromBool r
@@ -673,7 +683,7 @@ makeMockBrowserWithContext r = return Browserful
   , setValue               = _'setValue r
   , invokeOn1              = _'invokeOn1 r
   , invokeOn2              = _'invokeOn2 r
-  , _makeHaskellCallback   = _'_makeHaskellCallback r
+  , _makeHaskellCallback   = _'makeHaskellCallback r
   , mathRandom             = _'mathRandom r
   }
 

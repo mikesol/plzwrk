@@ -1,5 +1,9 @@
 # Changelog for plzwrk
 
+## 0.0.0.8
+
+- Fixes a bug in the HSX parser that rejected certain valid text nodes
+
 ## 0.0.0.7
 
 - Removes spurious dependencies for faster build.

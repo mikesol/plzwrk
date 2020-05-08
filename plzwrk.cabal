@@ -7,7 +7,7 @@ cabal-version: 1.12
 -- hash: 8099ceb0d406f862d89306de053aba4c75999a9e0d74ac6a502458d503e7dcc1
 
 name:           plzwrk
-version:        0.0.0.7
+version:        0.0.0.8
 category:       Web
 synopsis:       A front-end framework
 description:    Please see the README on GitHub at <https://github.com/meeshkan/plzwrk#readme>

@@ -1,5 +1,9 @@
 # Changelog for plzwrk
 
+## 0.0.0.7
+
+- Removes spurious dependencies for faster build.
+
 ## 0.0.0.6
 
 - Adds `#el` mixin for element lists.

@@ -112,7 +112,7 @@ attribute = do
 ws :: Parser ()
 ws = void $ many $ oneOf " \t\r\n"
 
-parseHSX :: MonadFail m => (String, Int, Int) -> String -> m HSX
+parseHSX :: MF.MonadFail m => (String, Int, Int) -> String -> m HSX
 parseHSX (file, line, col) s = case runParser p () "" s of
   Left  err -> MF.fail $ show err
   Right e   -> return e

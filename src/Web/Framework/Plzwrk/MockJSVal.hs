@@ -27,7 +27,6 @@ import           Data.HashMap.Strict     hiding ( foldr
 import           Data.IORef
 import           Data.List                      ( elemIndex )
 import           Prelude                 hiding ( lookup )
-import           System.Random
 import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.Browserful
 

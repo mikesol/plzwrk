@@ -79,6 +79,7 @@ nested = div_ (take 10 $ repeat makeP)
 `hsx` is not unlike `jsx`. The main difference is that instead of using just `{}`, `hsx` uses three different varieties of `#{}#`
 
 - `#e{}#` for an element
+- `#el{}#` for a list of elements
 - `#t{}#` for a text node or text attribute
 - `#c{}#` for a callback attribute
 

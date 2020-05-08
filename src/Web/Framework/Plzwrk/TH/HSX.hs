@@ -24,6 +24,7 @@ data HSXAttribute = HSXStringAttribute String
 data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXSelfClosingTag String [(String, HSXAttribute)]
           | HSXHaskellCode String
+          | HSXHaskellCodeList String
           | HSXHaskellText String
           | HSXBody String
         deriving (Show, Eq)
@@ -40,13 +41,20 @@ tag = do
   ws
   close <- try (string "/>" <|> string ">")
   if (length close) == 2
-  then return (HSXSelfClosingTag name attr)
-  else do
-        elementHSXBody <- manyTill elementHSXBody (endTag name)
-        ws
-        return (HSXElement name attr elementHSXBody)
+    then return (HSXSelfClosingTag name attr)
+    else do
+      elementHSXBody <- manyTill elementHSXBody (endTag name)
+      ws
+      return (HSXElement name attr elementHSXBody)
 
-elementHSXBody = ws *> (try tag <|> try haskellCodeNode <|> try haskellTxtNode <|> text)
+elementHSXBody =
+  ws
+    *> (   try tag
+       <|> try haskellCodeNode
+       <|> try haskellCodeNodes
+       <|> try haskellTxtNode
+       <|> text
+       )
 
 endTag :: String -> Parser String
 endTag str = string "</" *> string str <* char '>'
@@ -67,7 +75,7 @@ haskellTxtAttr = do
 
 makeBracketed cmd contain = do
   let start = ("#" <> cmd <> "{")
-  let end = "}#"
+  let end   = "}#"
   string start
   value <- manyTill anyChar (string end)
   ws
@@ -82,13 +90,18 @@ haskellCodeNode = do
   value <- makeBracketed "e" False
   return $ HSXHaskellCode value
 
+haskellCodeNodes :: Parser HSX
+haskellCodeNodes = do
+  value <- makeBracketed "el" False
+  return $ HSXHaskellCodeList value
+
 haskellTxtNode :: Parser HSX
 haskellTxtNode = do
   value <- makeBracketed "t" False
   return $ HSXHaskellText value
 
 attribute = do
-  name <- many (noneOf "= />")  
+  name <- many (noneOf "= />")
   ws
   char '='
   ws
@@ -100,22 +113,22 @@ ws :: Parser ()
 ws = void $ many $ oneOf " \t\r\n"
 
 parseHSX :: MonadFail m => (String, Int, Int) -> String -> m HSX
-parseHSX (file, line, col) s =
-    case runParser p () "" s of
-      Left err  -> fail $ show err
-      Right e   -> return e
-  where
-    p = do updatePosition file line col
-           ws
-           e <- hsx
-           ws
-           eof
-           return e
+parseHSX (file, line, col) s = case runParser p () "" s of
+  Left  err -> fail $ show err
+  Right e   -> return e
+ where
+  p = do
+    updatePosition file line col
+    ws
+    e <- hsx
+    ws
+    eof
+    return e
 
 updatePosition file line col = do
-   pos <- getPosition
-   setPosition $
-     (flip setSourceName) file $
-     (flip setSourceLine) line $
-     (flip setSourceColumn) col $
-     pos
+  pos <- getPosition
+  setPosition
+    $ (flip setSourceName) file
+    $ (flip setSourceLine) line
+    $ (flip setSourceColumn) col
+    $ pos

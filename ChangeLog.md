@@ -1,5 +1,9 @@
 # Changelog for plzwrk
 
+## 0.0.0.6
+
+- Adds `#el` mixin for element lists.
+
 ## 0.0.0.5
 
 - Adds bounds for cabal packages

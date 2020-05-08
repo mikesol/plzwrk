@@ -25,7 +25,7 @@ module Web.Framework.Plzwrk
   -- hsx
   , hsx
   , hsx'
-  , hmFromList
+  , plusplus
   -- util
   , pF
   , pT

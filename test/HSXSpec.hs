@@ -61,10 +61,7 @@ hsxSpec = describe "HSXParser" $ do
     let mylink = [hsx|<a click=#c{(\_ x -> return $ x + 41)}#>Hello</a>|]
     let dom = [hsx|
             <h1 id="foo" style="position:absolute">
-                <div>Hello <div>
-                    world
-                  </div>
-                </div>
+                <div>Hello <span>world</span> </div>
             </h1>
         |]
     _elt_tag (dom 3) `shouldBe` "h1"

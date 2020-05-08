@@ -2,6 +2,16 @@ module Web.Framework.Plzwrk.TH.HSX
   ( HSXAttribute(..)
   , HSX(..)
   , parseHSX
+  ------------ for debugging
+  , endTag
+  , elementHSXBody
+  , attribute
+  , tag
+  , text
+  , haskellCodeNodes
+  , haskellTxtAttr
+  , haskellTxtNode
+  , haskellCodeNode
   )
 where
 
@@ -43,9 +53,10 @@ tag = do
   if (length close) == 2
     then return (HSXSelfClosingTag name attr)
     else do
-      elementHSXBody <- manyTill elementHSXBody (endTag name)
+      elementBody <- many elementHSXBody
+      endTag name
       ws
-      return (HSXElement name attr elementHSXBody)
+      return (HSXElement name attr elementBody)
 
 elementHSXBody =
   ws

@@ -11,7 +11,7 @@ import           Control.Applicative            ( (<*)
                                                 , (<$)
                                                 )
 import           Control.Monad                  ( void )
-import           Control.Monad.Fail
+import qualified Control.Monad.Fail            as MF
 import           Data.Char
 import           Data.List                      ( foldl' )
 import           Text.Parsec
@@ -114,7 +114,7 @@ ws = void $ many $ oneOf " \t\r\n"
 
 parseHSX :: MonadFail m => (String, Int, Int) -> String -> m HSX
 parseHSX (file, line, col) s = case runParser p () "" s of
-  Left  err -> fail $ show err
+  Left  err -> MF.fail $ show err
   Right e   -> return e
  where
   p = do

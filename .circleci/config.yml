@@ -3,8 +3,8 @@ jobs:
   build:
     docker:
       - image: fpco/stack-build:lts
-      - image: docker/docker
-      steps:
+      - image: fpco/stack-build:lts
+    steps:
       - checkout
       - restore_cache:
           # Read about caching dependencies: https://circleci.com/docs/2.0/caching/

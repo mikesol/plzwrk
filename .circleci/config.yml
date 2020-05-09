@@ -56,10 +56,10 @@ jobs:
           command: cd hello-world && ahc-link --input-hs Main.hs --browser --bundle
       - run:
           name: Uploads hello-world to surge
-          command: cd hello-world && surge . plzwrk-hello-world.surge.sh
+          command: cd hello-world && cp Main.html index.html && surge . plzwrk-hello-world.surge.sh
       - run:
           name: Uploads kitchen-sink to surge
-          command: cd kitchen-sink && surge . plzwrk-kitchen-sink.surge.sh
+          command: cd kitchen-sink && cp Main.html index.html && surge . plzwrk-kitchen-sink.surge.sh
   deploy:
     docker:
       - image: docker

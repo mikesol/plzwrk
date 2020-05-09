@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: docker
+      - image: fpco/stack-build:lts
     steps:
       - checkout
       - restore_cache:
@@ -11,9 +11,6 @@ jobs:
           keys:
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
-      - run:
-          name: Install stack
-          command: wget -qO- https://get.haskellstack.org/ | sh
       - run:
           name: Resolve/Update Dependencies
           command: stack --no-terminal setup
@@ -29,6 +26,10 @@ jobs:
           paths:
             - "/root/.stack"
             - ".stack-work"
+  deploy:
+    docker:
+      - image: docker
+    steps:
       - run:
           name: Push to dockerhub
           command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest

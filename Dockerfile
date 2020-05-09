@@ -6,6 +6,15 @@ ARG ASTERIUS_AHC_LD_IGNORE=1
 
 COPY --chown=asterius:asterius . /tmp/build
 
+COPY --chown=asterius:asterius . /tmp/cb-test
+
+RUN \
+  cd /tmp/cb-test && \
+  cabal v1-update && \
+  cabal configure --enable-tests && \
+  cabal build && \
+  cabal test 
+
 RUN \
   cd /tmp/build && \
   ahc-cabal v1-update && \

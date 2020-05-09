@@ -1,18 +1,15 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 #if defined(PLZWRK_ENABLE_ASTERIUS)
 import           Asterius.Types
 import           Web.Framework.Plzwrk.Asterius
-# else
+#else
 import           Web.Framework.Plzwrk.MockJSVal
-# endif
-
+#endif
 import           Control.Monad
 import           Data.HashMap.Strict     hiding ( null )
 import           Data.IORef
-import           NeatInterpolation
 import qualified Data.Set                      as S
 import qualified Data.Text                     as DT
 import           Nouns
@@ -47,12 +44,16 @@ surprise =
 
 -- here is where we will input a noun for our "surprise" aphorosim
 writeSomethingConcrete browser = input
-  [("type", pT "text"), ("style", pT "box-sizing:content-box"), ("input",
-    pF (\e s -> do
-      v <- (eventTargetValue browser) e
-      return $ maybe s (\q -> s { _myNoun = q }) v
+  [ ("type" , pT "text")
+  , ("style", pT "box-sizing:content-box")
+  , ( "input"
+    , pF
+      (\e s -> do
+        v <- (eventTargetValue browser) e
+        return $ maybe s (\q -> s { _myNoun = q }) v
+      )
     )
-  )]
+  ]
   []
 
 aphorismList =
@@ -66,49 +67,58 @@ aphorismList =
 
 addAphorismButton browser =
   (\a2c -> button'
-      [("id", pT "incr"), ("class", pT "dim"), ("click",
-        pF (\e s -> do
-          (eventTargetBlur browser) e
-          (consoleLogS browser) $ "Here is the current state " <> show s
-          concept    <- randAbstract (mathRandom browser)
-          comparedTo <- randConcrete (mathRandom browser)
-          let newS = s { _abstractToConcrete = (concept, comparedTo) : a2c }
-          (consoleLogS browser) $ "Here is the new state " <> show newS
-          return $ newS
+      [ ("id"   , pT "incr")
+      , ("class", pT "dim")
+      , ( "click"
+        , pF
+          (\e s -> do
+            (eventTargetBlur browser) e
+            (consoleLogS browser) $ "Here is the current state " <> show s
+            concept    <- randAbstract (mathRandom browser)
+            comparedTo <- randConcrete (mathRandom browser)
+            let newS = s { _abstractToConcrete = (concept, comparedTo) : a2c }
+            (consoleLogS browser) $ "Here is the new state " <> show newS
+            return $ newS
+          )
         )
-      )]
+      ]
       [txt "More aphorisms"]
     )
     <$> _abstractToConcrete
 
 removeAphorismButton browser =
   (\a2c -> button'
-      [("id", pT "decr"), ("class", pT "dim"), ("click", pF
-        (\e s -> do
-          (eventTargetBlur browser) e
-          pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
+      [ ("id"   , pT "decr")
+      , ("class", pT "dim")
+      , ( "click"
+        , pF
+          (\e s -> do
+            (eventTargetBlur browser) e
+            pure $ s { _abstractToConcrete = if null a2c then [] else tail a2c }
+          )
         )
-      )]
+      ]
       [txt "Less aphorisms"]
     )
     <$> _abstractToConcrete
 
 loginText =
-  (\name -> p'_ [txt "Logged in as: ", span [("class", pT "username")] [txt name]])
+  (\name ->
+      p'_ [txt "Logged in as: ", span [("class", pT "username")] [txt name]]
+    )
     <$> _name
 
 main :: IO ()
 main = do
-
 #if defined(PLZWRK_ENABLE_ASTERIUS)
   browser <- asteriusBrowser
-# else
+#else
   browser <- makeMockBrowser
-# endif
+#endif
   -- add some css!
   _head   <- (documentHead browser)
   _style  <- (documentCreateElement browser) "style"
-  _css    <- (documentCreateTextNode browser) (DT.unpack myCss)
+  _css    <- (documentCreateTextNode browser) (unwords myCss)
   (nodeAppendChild browser) _style _css
   (nodeAppendChild browser) _head _style
   -- and here is our main div
@@ -132,14 +142,14 @@ main = do
 randFromList :: [String] -> IO Double -> IO String
 randFromList l f = do
   z <- f
-  let i = round $ (fromIntegral $ length l) * z
+  let i = round $ fromIntegral (length l) * z
   return $ l !! i
 
 
 indefiniteArticle :: String -> String
 indefiniteArticle x =
   let hd = take 1 x
-  in  if (hd == "a" || hd == "e" || hd == "i" || hd == "o" || hd == "u")
+  in  if hd == "a" || hd == "e" || hd == "i" || hd == "o" || hd == "u"
         then " an "
         else " a "
 
@@ -149,194 +159,194 @@ randAbstract = randFromList abstract
 randConcrete :: IO Double -> IO String
 randConcrete = randFromList concrete
 
-myCss = [text|
-body {
-	margin: 0;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-}
 
-html,
-body {
-	height: 100%;
-}
-
-body>div:first-child,
-body>div:first-child>div:first-child,
-body>div:first-child>div:first-child>div {
-	height: inherit;
-}
-
-input {
-	box-sizing: border-box;
-	padding: 9.5px 15px;
-	border: 0;
-	text-align: center;
-	border-bottom: 1px solid #d8d8d8;
-	font-size: 14px;
-	transition: border-bottom-color 100ms ease-in, color 100ms ease-in;
-	max-width: 250px;
-	border-radius: 0;
-}
-
-input:focus {
-	outline: none;
-	border-color: #000;
-}
-
-.dim {
-    opacity: 1;
-    transition: opacity .15s ease-in;
-    cursor: pointer;
-}
-.dim:hover,
-.dim:focus {
-    opacity: .5;
-    transition: opacity .15s ease-in;
-}
-.dim:active {
-    opacity: .8;
-    transition: opacity .15s ease-out;
-}
-
-@media (min-width: 768px) {
-	input {
-		min-width: 300px;
-		max-width: 620px;
-	}
-}
-
-ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-hr {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    width: 70%;
-}
-
-main {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 20px;
-	box-sizing: border-box;
-	flex-direction: column;
-}
-
-.content {
-	text-align: center;
-	max-width: 100%;
-	-webkit-animation: fadein 2s;
-	-moz-animation: fadein 2s;
-	-ms-animation: fadein 2s;
-	-o-animation: fadein 2s;
-	animation: fadein 2s;
-}
-
-h1 {
-	font-family: 'Montserrat', sans-serif;
-	font-weight: normal;
-	font-size: 32px;
-	text-align: center;
-	margin-bottom: 25px;
-}
-
-aside {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 50px 0 40px 0;
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
-aside nav {
-	height: 18px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-aside nav a {
-	font-size: 13px;
-	color: #b2b2b2;
-	text-decoration: none;
-	transition: color 100ms ease-in;
-}
-
-aside nav b {
-	display: block;
-	background: #b2b2b2;
-	width: 1px;
-	height: 100%;
-	margin: 0 10px;
-}
-
-.username {
-    font-weight: 500;
-}
-
-p {
-	font-weight: 400;
-	font-size: 14px;
-	line-height: 24px;
-	max-width: 390px;
-	text-align: center;
-	margin: 14px auto 30px auto;
-}
-
-button {
-    background-color: rgba(0, 0, 0, 0.671);
-    border: none;
-    color: white;
-    padding: 10px 12px;
-    margin: 10px;
-    text-align: center;
-    border-radius: 12px;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-  }
-
-@keyframes fadein {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@-moz-keyframes fadein {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@-webkit-keyframes fadein {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@media (max-height: 400px) {
-	aside {
-		display: none;
-	}
-}
-  |]
-
+myCss =
+  [ "body {\n"
+  , "  margin: 0;\n"
+  , "  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif;\n"
+  , "  text-rendering: optimizeLegibility;\n"
+  , "  -webkit-font-smoothing: antialiased;\n"
+  , "}\n"
+  , "\n"
+  , "html,\n"
+  , "body {\n"
+  , "  height: 100%;\n"
+  , "}\n"
+  , "\n"
+  , "body>div:first-child,\n"
+  , "body>div:first-child>div:first-child,\n"
+  , "body>div:first-child>div:first-child>div {\n"
+  , "  height: inherit;\n"
+  , "}\n"
+  , "\n"
+  , "input {\n"
+  , "  box-sizing: border-box;\n"
+  , "  padding: 9.5px 15px;\n"
+  , "  border: 0;\n"
+  , "  text-align: center;\n"
+  , "  border-bottom: 1px solid #d8d8d8;\n"
+  , "  font-size: 14px;\n"
+  , "  transition: border-bottom-color 100ms ease-in, color 100ms ease-in;\n"
+  , "  max-width: 250px;\n"
+  , "  border-radius: 0;\n"
+  , "}\n"
+  , "\n"
+  , "input:focus {\n"
+  , "  outline: none;\n"
+  , "  border-color: #000;\n"
+  , "}\n"
+  , "\n"
+  , ".dim {\n"
+  , "    opacity: 1;\n"
+  , "    transition: opacity .15s ease-in;\n"
+  , "    cursor: pointer;\n"
+  , "}\n"
+  , ".dim:hover,\n"
+  , ".dim:focus {\n"
+  , "    opacity: .5;\n"
+  , "    transition: opacity .15s ease-in;\n"
+  , "}\n"
+  , ".dim:active {\n"
+  , "    opacity: .8;\n"
+  , "    transition: opacity .15s ease-out;\n"
+  , "}\n"
+  , "\n"
+  , "@media (min-width: 768px) {\n"
+  , "  input {\n"
+  , "    min-width: 300px;\n"
+  , "    max-width: 620px;\n"
+  , "  }\n"
+  , "}\n"
+  , "\n"
+  , "ul {\n"
+  , "    list-style: none;\n"
+  , "    padding-left: 0;\n"
+  , "}\n"
+  , "\n"
+  , "hr {\n"
+  , "    margin-top: 15px;\n"
+  , "    margin-bottom: 15px;\n"
+  , "    width: 70%;\n"
+  , "}\n"
+  , "\n"
+  , "main {\n"
+  , "  width: 100%;\n"
+  , "  height: 100%;\n"
+  , "  display: flex;\n"
+  , "  justify-content: center;\n"
+  , "  align-items: center;\n"
+  , "  padding: 20px;\n"
+  , "  box-sizing: border-box;\n"
+  , "  flex-direction: column;\n"
+  , "}\n"
+  , "\n"
+  , ".content {\n"
+  , "  text-align: center;\n"
+  , "  max-width: 100%;\n"
+  , "  -webkit-animation: fadein 2s;\n"
+  , "  -moz-animation: fadein 2s;\n"
+  , "  -ms-animation: fadein 2s;\n"
+  , "  -o-animation: fadein 2s;\n"
+  , "  animation: fadein 2s;\n"
+  , "}\n"
+  , "\n"
+  , "h1 {\n"
+  , "  font-family: 'Montserrat', sans-serif;\n"
+  , "  font-weight: normal;\n"
+  , "  font-size: 32px;\n"
+  , "  text-align: center;\n"
+  , "  margin-bottom: 25px;\n"
+  , "}\n"
+  , "\n"
+  , "aside {\n"
+  , "  display: flex;\n"
+  , "  justify-content: center;\n"
+  , "  align-items: center;\n"
+  , "  padding: 50px 0 40px 0;\n"
+  , "  position: absolute;\n"
+  , "  bottom: 0;\n"
+  , "  left: 0;\n"
+  , "  right: 0;\n"
+  , "}\n"
+  , "\n"
+  , "aside nav {\n"
+  , "  height: 18px;\n"
+  , "  display: flex;\n"
+  , "  justify-content: center;\n"
+  , "  align-items: center;\n"
+  , "}\n"
+  , "\n"
+  , "aside nav a {\n"
+  , "  font-size: 13px;\n"
+  , "  color: #b2b2b2;\n"
+  , "  text-decoration: none;\n"
+  , "  transition: color 100ms ease-in;\n"
+  , "}\n"
+  , "\n"
+  , "aside nav b {\n"
+  , "  display: block;\n"
+  , "  background: #b2b2b2;\n"
+  , "  width: 1px;\n"
+  , "  height: 100%;\n"
+  , "  margin: 0 10px;\n"
+  , "}\n"
+  , "\n"
+  , ".username {\n"
+  , "    font-weight: 500;\n"
+  , "}\n"
+  , "\n"
+  , "p {\n"
+  , "  font-weight: 400;\n"
+  , "  font-size: 14px;\n"
+  , "  line-height: 24px;\n"
+  , "  max-width: 390px;\n"
+  , "  text-align: center;\n"
+  , "  margin: 14px auto 30px auto;\n"
+  , "}\n"
+  , "\n"
+  , "button {\n"
+  , "    background-color: rgba(0, 0, 0, 0.671);\n"
+  , "    border: none;\n"
+  , "    color: white;\n"
+  , "    padding: 10px 12px;\n"
+  , "    margin: 10px;\n"
+  , "    text-align: center;\n"
+  , "    border-radius: 12px;\n"
+  , "    text-decoration: none;\n"
+  , "    display: inline-block;\n"
+  , "    font-size: 14px;\n"
+  , "  }\n"
+  , "\n"
+  , "@keyframes fadein {\n"
+  , "  from {\n"
+  , "    opacity: 0;\n"
+  , "  }\n"
+  , "  to {\n"
+  , "    opacity: 1;\n"
+  , "  }\n"
+  , "}\n"
+  , "\n"
+  , "@-moz-keyframes fadein {\n"
+  , "  from {\n"
+  , "    opacity: 0;\n"
+  , "  }\n"
+  , "  to {\n"
+  , "    opacity: 1;\n"
+  , "  }\n"
+  , "}\n"
+  , "\n"
+  , "@-webkit-keyframes fadein {\n"
+  , "  from {\n"
+  , "    opacity: 0;\n"
+  , "  }\n"
+  , "  to {\n"
+  , "    opacity: 1;\n"
+  , "  }\n"
+  , "}\n"
+  , "\n"
+  , "@media (max-height: 400px) {\n"
+  , "  aside {\n"
+  , "    display: none;\n"
+  , "  }\n"
+  , "}\n"
+  ]

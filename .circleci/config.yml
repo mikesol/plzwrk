@@ -46,6 +46,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install surge
+          command: npm -i -g surge
+      - run:
           name: Installs plzwrk
           command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
       - run:

@@ -3,7 +3,9 @@ workflows:
   docker_deploy:
     jobs:
       - build
-      - deploy
+      - deploy:
+          requires:
+            build
           filters:
             branches:
               only: master

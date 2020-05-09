@@ -24,12 +24,6 @@ Check out the code [here](./kitchen-sink/Main.hs).
 
 See it [live](https://plzwrk-kitchen-sink.surge.sh).
 
-## Installation
-
-Add `plzwrk` to the `build-depends` stanza of your `.cabal` file.
-
-Also, add `plzwrk-X.Y.Z.?` to the `extra-deps` list of your `stack.yaml` file if you're using stack.
-
 ## Making a webpage
 
 `plzwrk` uses [Asterius](https://github.com/tweag/asterius) as its backend for web development. 

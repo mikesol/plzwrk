@@ -28,5 +28,5 @@ jobs:
             - ".stack-work"
       - run:
           name: Push to dockerhub
-          command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk
+          command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest
       

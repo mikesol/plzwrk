@@ -145,19 +145,19 @@ reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (Dom
           <$> ZipList (padr maxlen Nothing (fmap Just currentChildren))
           <*> ZipList (padr maxlen Nothing (fmap Just maybeNewChildren))
           )
-        currentAttributes <- mapM
+        newerAttributes <- mapM
           (hydratedAttrToDomifiedAttr refToOldStuff domCreationF parentNode)
           maybeNewAttributes
         if touchDOM
           then
             (do
               mapM_ (removeEventHandler currentNode) currentAttributes
-              mapM_ (setEventHandler currentNode)    currentAttributes
+              mapM_ (setEventHandler currentNode)    newerAttributes
             )
           else pure ()
         return $ Just
           (DomifiedPwElement currentTag
-                             currentAttributes
+                             newerAttributes
                              (catMaybes newChildren)
                              currentNode
           )

@@ -39,11 +39,10 @@ jobs:
             - ".stack-work"
   deploy:
     docker:
-      # this seems to have docker on it...
-      # using it for docker, not the jdk
-      - image: circleci/openjdk:8-jdk
+      - image: docker
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Push to dockerhub
           command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest

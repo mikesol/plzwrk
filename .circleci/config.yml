@@ -54,10 +54,12 @@ jobs:
       - run:
           name: Builds hello-world
           command: cd hello-world && ahc-link --input-hs Main.hs --browser --bundle
-      - store_artifacts:
-          path: ./kitchen-sink
-      - store_artifacts:
-          path: ./hello-world        
+      - run:
+          name: Uploads hello-world to surge
+          command: cd hello-world && surge . plzwrk-hello-world.surge.sh
+      - run:
+          name: Uploads kitchen-sink to surge
+          command: cd kitchen-sink && surge . plzwrk-kitchen-sink.surge.sh
   deploy:
     docker:
       - image: docker

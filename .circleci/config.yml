@@ -3,7 +3,6 @@ jobs:
   build:
     docker:
       - image: fpco/stack-build:lts
-      - image: docker/docker
     steps:
       - checkout
       - restore_cache:
@@ -12,6 +11,22 @@ jobs:
           keys:
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
+      - run:
+          name: Install docker
+          command: apt-get update
+          command: apt-get install \
+          apt-transport-https \
+          ca-certificates \
+          curl \
+          gnupg-agent \
+          software-properties-common
+          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+          command: add-apt-repository \
+          "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) \
+          stable"
+          command: apt-get update
+          command: apt-get install docker-ce docker-ce-cli containerd.io
       - run:
           name: Resolve/Update Dependencies
           command: stack --no-terminal setup

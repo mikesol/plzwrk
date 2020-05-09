@@ -1,8 +1,9 @@
 # Changelog for plzwrk
 
-## Unversioned changes
+## 0.0.0.9
 
 - Renames `Browserful` to `JSEnv`.
+- Fixes garbage collection bug for callback functions.
 
 ## 0.0.0.8
 

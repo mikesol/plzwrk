@@ -22,7 +22,7 @@ import           Data.Maybe                     ( fromMaybe
                                                 )
 import qualified Data.Set                      as S
 import           Web.Framework.Plzwrk.Base
-import           Web.Framework.Plzwrk.Browserful
+import           Web.Framework.Plzwrk.JSEnv
 import           Web.Framework.Plzwrk.Util
 
 data DomifiedAttribute jsval = DomifiedTextAttribute String | DomifiedFunctionAttribute jsval
@@ -43,13 +43,13 @@ data OldStuff state jsval = OldStuff {
 ---------- reader functions
 
 
-freeAttrFunction :: DomifiedAttribute jsval -> ReaderT (Browserful jsval) IO ()
+freeAttrFunction :: DomifiedAttribute jsval -> ReaderT (JSEnv jsval) IO ()
 freeAttrFunction (DomifiedFunctionAttribute f) = do
   __freeCallback <- asks _freeCallback
   liftIO (void $ __freeCallback f)
 freeAttrFunction _ = return ()
 
-freeFunctions :: DomifiedPwNode jsval -> ReaderT (Browserful jsval) IO ()
+freeFunctions :: DomifiedPwNode jsval -> ReaderT (JSEnv jsval) IO ()
 freeFunctions (DomifiedPwElement _ b c _) = do
   mapM_ freeAttrFunction (fmap snd b)
   mapM_ freeFunctions    c
@@ -128,7 +128,7 @@ reconcile
   -> Maybe (DomifiedPwNode jsval)
   -> Maybe (HydratedPwNode state jsval)
   -> ReaderT
-       (Browserful jsval)
+       (JSEnv jsval)
        IO
        (Maybe (DomifiedPwNode jsval))
 reconcile touchDOM refToOldStuff domCreationF parentNode topLevelNode (Just (DomifiedPwElement currentTag currentAttributes currentChildren currentNode)) (Just maybeNewNode@(HydratedPwElement maybeNewTag maybeNewAttributes maybeNewChildren))
@@ -235,7 +235,7 @@ cbMaker
   -> (state -> PwNode state jsval)
   -> jsval
   -> (jsval -> state -> IO state)
-  -> Browserful jsval
+  -> JSEnv jsval
   -> jsval
   -> IO ()
 cbMaker refToOldStuff domCreationF topLevelNode eventToState env event = do
@@ -261,7 +261,7 @@ eventable
   -> (state -> PwNode state jsval)
   -> jsval
   -> (jsval -> state -> IO state)
-  -> ReaderT (Browserful jsval) IO jsval
+  -> ReaderT (JSEnv jsval) IO jsval
 eventable refToOldStuff domCreationF topLevelNode eventToState = do
   __makeHaskellCallback <- asks _makeHaskellCallback
   env                   <- ask
@@ -273,7 +273,7 @@ hydratedAttrToDomifiedAttr
   -> (state -> PwNode state jsval)
   -> jsval
   -> (String, PwAttribute state jsval)
-  -> ReaderT (Browserful jsval) IO (String, DomifiedAttribute jsval)
+  -> ReaderT (JSEnv jsval) IO (String, DomifiedAttribute jsval)
 hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode (k, PwTextAttribute t)
   = return (k, DomifiedTextAttribute t)
 hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode (k, PwFunctionAttribute f)
@@ -284,7 +284,7 @@ hydratedAttrToDomifiedAttr refToOldStuff domCreationF topLevelNode (k, PwFunctio
 setAtt
   :: jsval
   -> (String, DomifiedAttribute jsval)
-  -> ReaderT (Browserful jsval) IO ()
+  -> ReaderT (JSEnv jsval) IO ()
 setAtt currentNode (k, DomifiedTextAttribute v) = do
   _elementSetAttribute <- asks elementSetAttribute
   liftIO $ _elementSetAttribute currentNode k v
@@ -302,7 +302,7 @@ handleOnlyEventListener _ _ _ = pure ()
 setEventHandler
   :: jsval
   -> (String, DomifiedAttribute jsval)
-  -> ReaderT (Browserful jsval) IO ()
+  -> ReaderT (JSEnv jsval) IO ()
 setEventHandler currentNode domifiedAttribute = do
   _eventTargetAddEventListener <- asks eventTargetAddEventListener
   liftIO $ handleOnlyEventListener _eventTargetAddEventListener
@@ -312,7 +312,7 @@ setEventHandler currentNode domifiedAttribute = do
 removeEventHandler
   :: jsval
   -> (String, DomifiedAttribute jsval)
-  -> ReaderT (Browserful jsval) IO ()
+  -> ReaderT (JSEnv jsval) IO ()
 removeEventHandler currentNode domifiedAttribute = do
   _eventTargetRemoveEventListener <- asks eventTargetRemoveEventListener
   liftIO $ handleOnlyEventListener _eventTargetRemoveEventListener
@@ -327,7 +327,7 @@ domify
   -> jsval
   -> Maybe jsval
   -> HydratedPwNode state jsval
-  -> ReaderT (Browserful jsval) IO (DomifiedPwNode jsval)
+  -> ReaderT (JSEnv jsval) IO (DomifiedPwNode jsval)
 domify touchDOM refToOldStuff domCreationF parentNode topLevelNode replacing (HydratedPwElement tag attrs children)
   = do
     _documentCreateElement <- asks documentCreateElement
@@ -376,14 +376,14 @@ getChildren (DomifiedPwElement _ _ x _) = x
 getChildren _                           = []
 
 setEventHandlers_
-  :: jsval -> DomifiedPwNode jsval -> ReaderT (Browserful jsval) IO ()
+  :: jsval -> DomifiedPwNode jsval -> ReaderT (JSEnv jsval) IO ()
 setEventHandlers_ v (DomifiedPwElement _ a _ _) = mapM_ (setEventHandler v) a
 setEventHandlers_ _ _                           = liftIO $ pure ()
 
 transformFromCurrentDom
   :: jsval
   -> [DomifiedPwNode jsval]
-  -> ReaderT (Browserful jsval) IO [DomifiedPwNode jsval]
+  -> ReaderT (JSEnv jsval) IO [DomifiedPwNode jsval]
 transformFromCurrentDom parentNode children = do
   _nodeChildNodes <- asks nodeChildNodes
   _kids           <- liftIO $ _nodeChildNodes parentNode
@@ -405,7 +405,7 @@ transformFromCurrentDom parentNode children = do
 addHandlers
   :: jsval
   -> DomifiedPwNode jsval
-  -> ReaderT (Browserful jsval) IO (DomifiedPwNode jsval)
+  -> ReaderT (JSEnv jsval) IO (DomifiedPwNode jsval)
 addHandlers parentNode curDom = do
   transformed <- transformFromCurrentDom parentNode [curDom]
   return (head transformed)
@@ -415,7 +415,7 @@ __plzwrk
   -> (state -> PwNode state jsval)
   -> state
   -> jsval
-  -> Browserful jsval
+  -> JSEnv jsval
   -> IO (Maybe (DomifiedPwNode jsval))
 __plzwrk cleanDOM domF state parentNode env = do
   refToOldStuff <- newIORef (OldStuff state Nothing)
@@ -445,7 +445,7 @@ _plzwrk
   :: Bool
   -> (state -> PwNode state jsval)
   -> state
-  -> Browserful jsval
+  -> JSEnv jsval
   -> String
   -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk cleanDOM domF state env nodeId = do
@@ -460,7 +460,7 @@ _plzwrk cleanDOM domF state env nodeId = do
 plzwrk
   :: (state -> PwNode state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
-  -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
+  -> JSEnv jsval -- ^ A browser implementation, ie Asterius or the mock browser
   -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
   -> IO () -- ^ Returns nothing
 
@@ -475,7 +475,7 @@ plzwrk domF state env nodeId = void $ _plzwrk True domF state env nodeId
 plzwrkSSR
   :: (state -> PwNode state jsval) -- ^ A function that takes a state and produces a DOM
   -> state -- ^ An initial state
-  -> Browserful jsval -- ^ A browser implementation, ie Asterius or the mock browser
+  -> JSEnv jsval -- ^ A browser implementation, ie Asterius or the mock browser
   -> String -- ^ The id of the element into which the DOM is inserted. Note that plzwrk manages all children under this element. Touching the managed elements can break plzwrk.
   -> IO () -- ^ Returns nothing
 
@@ -485,7 +485,7 @@ _plzwrk'
   :: Bool
   -> (state -> PwNode state jsval)
   -> state
-  -> Browserful jsval
+  -> JSEnv jsval
   -> IO (Maybe (DomifiedPwNode jsval))
 _plzwrk' cleanDOM domF state env = do
   parentNode <- documentBody env
@@ -493,21 +493,21 @@ _plzwrk' cleanDOM domF state env = do
 
 -- |A variation of plzwrk that inserts the node as a child of the document's body.
 
-plzwrk' :: (state -> PwNode state jsval) -> state -> Browserful jsval -> IO ()
+plzwrk' :: (state -> PwNode state jsval) -> state -> JSEnv jsval -> IO ()
 plzwrk' domF state env = void $ _plzwrk' True domF state env
 
 -- |A variation of plzwrk that inserts the node as a child of the document's body.
 
 plzwrkSSR'
-  :: (state -> PwNode state jsval) -> state -> Browserful jsval -> IO ()
+  :: (state -> PwNode state jsval) -> state -> JSEnv jsval -> IO ()
 plzwrkSSR' domF state env = void $ _plzwrk' False domF state env
 
 -- |A variation of plzwrk that takes no state.
 
-plzwrk'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
+plzwrk'_ :: (() -> PwNode () jsval) -> JSEnv jsval -> IO ()
 plzwrk'_ domF = plzwrk' domF ()
 
 -- |A variation of plzwrkSSR that takes no state.
 
-plzwrkSSR'_ :: (() -> PwNode () jsval) -> Browserful jsval -> IO ()
+plzwrkSSR'_ :: (() -> PwNode () jsval) -> JSEnv jsval -> IO ()
 plzwrkSSR'_ domF = plzwrkSSR' domF ()

@@ -1,5 +1,9 @@
 # Changelog for plzwrk
 
+## Unversioned changes
+
+- Renames `Browserful` to `JSEnv`.
+
 ## 0.0.0.8
 
 - Fixes a bug in the HSX parser that rejected certain valid text nodes

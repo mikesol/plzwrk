@@ -29,10 +29,10 @@ import           Data.ByteString.Unsafe
 import           Data.HashMap.Strict as HM
 import           Data.Coerce
 import           Foreign.Ptr
-import           Web.Framework.Plzwrk.Browserful
+import           Web.Framework.Plzwrk.JSEnv
 
-asteriusBrowser :: IO (Browserful JSVal)
-asteriusBrowser = return Browserful
+asteriusBrowser :: IO (JSEnv JSVal)
+asteriusBrowser = return JSEnv
   { 
     castToArray                    = _castToArray
   , castToBool                     = _castToBool

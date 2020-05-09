@@ -21,7 +21,7 @@ module Web.Framework.Plzwrk
   , toHTML
   , PwNode(..)
   , PwAttribute(..)
-  , Browserful(..)
+  , JSEnv(..)
   -- hsx
   , hsx
   , hsx'
@@ -54,7 +54,7 @@ where
 
 import           Prelude                 hiding ( div )
 import           Web.Framework.Plzwrk.Base
-import           Web.Framework.Plzwrk.Browserful
+import           Web.Framework.Plzwrk.JSEnv
 import           Web.Framework.Plzwrk.Domify
 import           Web.Framework.Plzwrk.Util
 import           Web.Framework.Plzwrk.TH.QuoteHSX

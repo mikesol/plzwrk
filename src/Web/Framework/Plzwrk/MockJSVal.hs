@@ -40,7 +40,7 @@ import           Data.IORef
 import           Data.List                      ( elemIndex )
 import           Prelude                 hiding ( lookup )
 import           Web.Framework.Plzwrk.Base
-import           Web.Framework.Plzwrk.Browserful
+import           Web.Framework.Plzwrk.JSEnv
 
 data LogEvent = ListenerReceived String Int
     | AddedAsListenerTo Int
@@ -660,8 +660,8 @@ _'defaultRequestInit = RequestInit { _ri_method      = Nothing
                                    , _ri_integrity   = Nothing
                                    }
 
-makeMockBrowserWithContext :: IORef MockBrowserInternal -> IO (Browserful Int)
-makeMockBrowserWithContext r = return Browserful
+makeMockBrowserWithContext :: IORef MockBrowserInternal -> IO (JSEnv Int)
+makeMockBrowserWithContext r = return JSEnv
   { castToArray            = _'castToArray r
   , castToBool             = _'castToBool r
   , castToByteString       = _'castToByteString r
@@ -702,7 +702,7 @@ defaultInternalBrowser = do
                            [CreatedElement 0]
   newIORef MockBrowserInternal { unBrowser = singleton 0 body, unCtr = 1 }
 
-makeMockBrowser :: IO (Browserful Int)
+makeMockBrowser :: IO (JSEnv Int)
 makeMockBrowser = do
   rf <- defaultInternalBrowser
   makeMockBrowserWithContext rf

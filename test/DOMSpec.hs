@@ -15,17 +15,17 @@ import           Web.Framework.Plzwrk.Tag       ( p
                                                 , div'_
                                                 )
 
-nodeChildNodesOrThrow :: Browserful jsval -> jsval -> IO [jsval]
+nodeChildNodesOrThrow :: JSEnv jsval -> jsval -> IO [jsval]
 nodeChildNodesOrThrow b v = do
   _v <- nodeChildNodes b v
   maybe (error "Could not find child nodes") pure _v
 
-nodeTextContentOrThrow :: Browserful jsval -> jsval -> IO String
+nodeTextContentOrThrow :: JSEnv jsval -> jsval -> IO String
 nodeTextContentOrThrow b v = do
   _v <- nodeTextContent b v
   maybe (error "Could not find text content") pure _v
 
-elementTagNameOrThrow :: Browserful jsval -> jsval -> IO String
+elementTagNameOrThrow :: JSEnv jsval -> jsval -> IO String
 elementTagNameOrThrow b v = do
   _v <- elementTagName b v
   maybe (error "Could not find tag name") pure _v

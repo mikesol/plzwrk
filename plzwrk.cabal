@@ -41,7 +41,7 @@ library
   other-modules:
       Paths_plzwrk
     , Web.Framework.Plzwrk.Base
-    , Web.Framework.Plzwrk.Browserful
+    , Web.Framework.Plzwrk.JSEnv
     , Web.Framework.Plzwrk.Domify
     , Web.Framework.Plzwrk.Util
     , Web.Framework.Plzwrk.TH.HSX

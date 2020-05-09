@@ -112,7 +112,7 @@ data JSEnv jsval = JSEnv
   , _makeHaskellCallback2          :: (jsval -> jsval -> IO ()) -> IO jsval
 
     -- | Makes a haskell callback with three arguments. Should only be called in advanced cases. In most usage, callbacks are created automatically by plzwrk.
-  , _makeHaskellCallback3          :: (jsval -> jsval -> jsenv -> IO ()) -> IO jsval
+  , _makeHaskellCallback3          :: (jsval -> jsval -> jsval -> IO ()) -> IO jsval
   }
 
 -- |The body of a fetch request or response

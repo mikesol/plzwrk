@@ -575,17 +575,17 @@ _'makeHaskellCallback1 env cb = do
   wrt env i elt
   return i
 
-_'makeHaskellCallback2 :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback2 :: IORef MockBrowserInternal -> (Int -> Int -> IO ()) -> IO Int
 _'makeHaskellCallback2 env cb = do
   i <- incr env
-  let elt = MockJSFunction2 i (cb . _ptr) [MadeCallback i]
+  let elt = MockJSFunction2 i (\x y -> cb (_ptr x) (_ptr y)) [MadeCallback i]
   wrt env i elt
   return i
 
-_'makeHaskellCallback3 :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback3 :: IORef MockBrowserInternal -> (Int -> Int -> Int -> IO ()) -> IO Int
 _'makeHaskellCallback3 env cb = do
   i <- incr env
-  let elt = MockJSFunction3 i (cb . _ptr) [MadeCallback i]
+  let elt = MockJSFunction3 i (\x y z -> cb (_ptr x) (_ptr y) (_ptr z)) [MadeCallback i]
   wrt env i elt
   return i
 

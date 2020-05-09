@@ -69,42 +69,6 @@ library
     build-depends:
       asterius-prelude
 
-executable kitchen-sink-exe
-  main-is: Main.hs
-  other-modules:
-      Nouns
-    , Paths_plzwrk
-  hs-source-dirs:
-      kitchen-sink
-  ghc-options: -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , plzwrk
-    , containers >= 0.6.2 && < 0.7
-    , text >= 1.2.3 && < 1.3
-    , unordered-containers >= 0.2.10 && < 0.3
-    
-  default-language: Haskell2010
-  if flag(plzwrk-enable-asterius)
-    cpp-options:
-      -DPLZWRK_ENABLE_ASTERIUS
-
-executable hello-world-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_plzwrk
-  hs-source-dirs:
-      hello-world
-  ghc-options: -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , plzwrk
-    , text >= 1.2.3 && < 1.3
-  default-language: Haskell2010
-  if flag(plzwrk-enable-asterius)
-    cpp-options:
-      -DPLZWRK_ENABLE_ASTERIUS
-
 test-suite plzwrk-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs

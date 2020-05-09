@@ -3,9 +3,12 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - deploy:
+      - asterius:
           requires:
             - build
+      - deploy:
+          requires:
+            - asterius
           filters:
             branches:
               only: master
@@ -37,6 +40,24 @@ jobs:
           paths:
             - "/root/.stack"
             - ".stack-work"
+  asterius:
+    docker:
+      - image: terrorjack/asterius
+    steps:
+      - checkout
+      - run:
+          name: Installs plzwrk
+          command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
+      - run:
+          name: Builds kitchen-sink
+          command: cd kitchen-sink && ahc-link --input-hs Main.hs --browser --bundle
+      - run:
+          name: Builds hello-world
+          command: cd hello-world && ahc-link --input-hs Main.hs --browser --bundle
+      - store_artifacts:
+          path: ./kitchen-sink
+      - store_artifacts:
+          path: ./hello-world        
   deploy:
     docker:
       - image: docker

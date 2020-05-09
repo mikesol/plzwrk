@@ -1,12 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
-#if defined(PLZWRK_ENABLE_ASTERIUS)
 import           Asterius.Types
 import           Web.Framework.Plzwrk.Asterius
-#else
-import           Web.Framework.Plzwrk.MockJSVal
-#endif
 import           Control.Monad
 import           Data.HashMap.Strict     hiding ( null )
 import           Data.IORef
@@ -110,11 +105,7 @@ loginText =
 
 main :: IO ()
 main = do
-#if defined(PLZWRK_ENABLE_ASTERIUS)
   browser <- asteriusBrowser
-#else
-  browser <- makeMockBrowser
-#endif
   -- add some css!
   _head   <- (documentHead browser)
   _style  <- (documentCreateElement browser) "style"

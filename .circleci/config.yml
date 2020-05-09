@@ -12,20 +12,30 @@ jobs:
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
       - run:
-          name: Install docker
+          name: Update from apt-get
           command: apt-get update
+      - run:
+          name: Install docker deps
           command: apt-get install \
           apt-transport-https \
           ca-certificates \
           curl \
           gnupg-agent \
           software-properties-common
+      - run:
+          name: Get the docker key
           command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+      - run:
+          name: Add the docker repository
           command: add-apt-repository \
           "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
           $(lsb_release -cs) \
           stable"
+      - run:
+          name: Update again
           command: apt-get update
+      - run:
+          name: Install docker
           command: apt-get install docker-ce docker-ce-cli containerd.io
       - run:
           name: Resolve/Update Dependencies

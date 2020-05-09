@@ -43,15 +43,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - restore_cache:
-          keys:
-          - v2-dependencies-{{ checksum "Dockerfile" }}
-          # fallback to using the latest cache if no exact match is found
-          - v2-dependencies-
       - run:
           name: Push to dockerhub
           command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest
-      - save_cache:
-          paths:
-            - /var/lib/docker
-          key: v2-dependencies-{{ checksum "Dockerfile" }}

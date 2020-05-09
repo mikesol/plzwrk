@@ -13,7 +13,7 @@ jobs:
             - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
       - run:
           name: Install curl
-          command: apt-get -y install curl
+          command: yum -y install curl
       - run:
           name: Install stack
           command: curl -sSL https://get.haskellstack.org/ | sh

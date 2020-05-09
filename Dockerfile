@@ -10,7 +10,7 @@ RUN \
   cd /tmp/build && \
   ahc-cabal v1-update && \
   mkdir ~/.cabal/bin && \
-  ahc-cabal v1-install -j$jobs --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" plzwrk
+  ahc-cabal v1-install -j$jobs --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
 
 USER root
 

@@ -2,41 +2,41 @@ version: 2.1
 workflows:
   build_and_deploy:
     jobs:
-      build:
-        docker:
-          - image: fpco/stack-build:lts
-        steps:
-          - checkout
-          - restore_cache:
-              # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
-              name: Restore Cached Dependencies
-              keys:
-                - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
-                - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
-          - run:
-              name: Resolve/Update Dependencies
-              command: stack --no-terminal setup
-          - run:
-              name: Run tests
-              command: stack --no-terminal test
-          - run:
-              name: Install executable
-              command: stack --no-terminal install
-          - save_cache:
-              name: Cache Dependencies
-              key: cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
-              paths:
-                - "/root/.stack"
-                - ".stack-work"
-      deploy:
-        docker:
-          - image: docker
-        requires:
-          - build
-        filters:
-          branches:
-            only: master
-        steps:
-          - run:
-              name: Push to dockerhub
-              command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest
+      - build:
+          docker:
+            - image: fpco/stack-build:lts
+          steps:
+            - checkout
+            - restore_cache:
+                # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
+                name: Restore Cached Dependencies
+                keys:
+                  - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
+                  - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
+            - run:
+                name: Resolve/Update Dependencies
+                command: stack --no-terminal setup
+            - run:
+                name: Run tests
+                command: stack --no-terminal test
+            - run:
+                name: Install executable
+                command: stack --no-terminal install
+            - save_cache:
+                name: Cache Dependencies
+                key: cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
+                paths:
+                  - "/root/.stack"
+                  - ".stack-work"
+      - deploy:
+          docker:
+            - image: docker
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+          steps:
+            - run:
+                name: Push to dockerhub
+                command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest

@@ -30,6 +30,9 @@ jobs:
           name: Install docker
           command: apt-get -y install docker-ce docker-ce-cli containerd.io
       - run:
+          name: Start the docker daemon
+          command: service docker start
+      - run:
           name: Resolve/Update Dependencies
           command: stack --no-terminal setup
       - run:

@@ -30,4 +30,6 @@ jobs:
       - run:
           name: Push to dockerhub
           command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest
-      
+          filters:
+            branches:
+              only: master

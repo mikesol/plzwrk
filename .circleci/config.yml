@@ -39,7 +39,9 @@ jobs:
             - ".stack-work"
   deploy:
     docker:
-      - image: docker
+      # this seems to have docker on it...
+      # using it for docker, not the jdk
+      - image: circleci/openjdk:8-jdk
     steps:
       - checkout
       - run:

@@ -263,9 +263,9 @@ eventable
   -> (jsval -> state -> IO state)
   -> ReaderT (JSEnv jsval) IO jsval
 eventable refToOldStuff domCreationF topLevelNode eventToState = do
-  __makeHaskellCallback <- asks _makeHaskellCallback
-  env                   <- ask
-  liftIO $ __makeHaskellCallback
+  __makeHaskellCallback1 <- asks _makeHaskellCallback1
+  env                    <- ask
+  liftIO $ __makeHaskellCallback1
     (cbMaker refToOldStuff domCreationF topLevelNode eventToState env)
 
 hydratedAttrToDomifiedAttr

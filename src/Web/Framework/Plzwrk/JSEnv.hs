@@ -105,8 +105,14 @@ data JSEnv jsval = JSEnv
     -- | Frees a callback. Should only be called in advanced cases. In most usage, callbacks are freed automatically by plzwrk.
   , _freeCallback                  :: jsval -> IO ()
 
-    -- | Makes a haskell callback. Should only be called in advanced cases. In most usage, callbacks are created automatically by plzwrk.
-  , _makeHaskellCallback           :: (jsval -> IO ()) -> IO jsval
+    -- | Makes a haskell callback with one argument. Should only be called in advanced cases. In most usage, callbacks are created automatically by plzwrk.
+  , _makeHaskellCallback1          :: (jsval -> IO ()) -> IO jsval
+
+    -- | Makes a haskell callback with two arguments. Should only be called in advanced cases. In most usage, callbacks are created automatically by plzwrk.
+  , _makeHaskellCallback2          :: (jsval -> jsval -> IO ()) -> IO jsval
+
+    -- | Makes a haskell callback with three arguments. Should only be called in advanced cases. In most usage, callbacks are created automatically by plzwrk.
+  , _makeHaskellCallback3          :: (jsval -> jsval -> jsenv -> IO ()) -> IO jsval
   }
 
 -- |The body of a fetch request or response

@@ -70,7 +70,9 @@ data MockAttributes = MockAttributes
 
 data MockJSVal = MockJSElement Int String MockAttributes [MockJSVal] [LogEvent]
     | MockJSTextNode Int String [LogEvent]
-    | MockJSFunction Int (MockJSVal -> IO ()) [LogEvent]
+    | MockJSFunction1 Int (MockJSVal -> IO ()) [LogEvent]
+    | MockJSFunction2 Int (MockJSVal -> MockJSVal -> IO ()) [LogEvent]
+    | MockJSFunction3 Int (MockJSVal -> MockJSVal -> MockJSVal -> IO ()) [LogEvent]
     | MockJSObject Int (HashMap String Int) [LogEvent]
     | MockJSString Int String [LogEvent]
     | MockJSDouble Int Double [LogEvent]
@@ -93,7 +95,9 @@ instance Show MockJSVal where
       <> " "
       <> show e
   show (MockJSTextNode   a b c) = show a <> " " <> show b <> " " <> show c
-  show (MockJSFunction   a _ c) = show a <> " " <> show c
+  show (MockJSFunction1  a _ c) = show a <> " " <> show c
+  show (MockJSFunction2  a _ c) = show a <> " " <> show c
+  show (MockJSFunction3  a _ c) = show a <> " " <> show c
   show (MockJSObject     a b c) = show a <> " " <> show b <> " " <> show c
   show (MockJSString     a b c) = show a <> " " <> show b <> " " <> show c
   show (MockJSDouble     a b c) = show a <> " " <> show b <> " " <> show c
@@ -106,7 +110,9 @@ instance Show MockJSVal where
 _withNewLog :: MockJSVal -> [LogEvent] -> MockJSVal
 _withNewLog (MockJSElement a b c d _) log = MockJSElement a b c d log
 _withNewLog (MockJSTextNode   a b _ ) log = MockJSTextNode a b log
-_withNewLog (MockJSFunction   a b _ ) log = MockJSFunction a b log
+_withNewLog (MockJSFunction1  a b _ ) log = MockJSFunction1 a b log
+_withNewLog (MockJSFunction2  a b _ ) log = MockJSFunction2 a b log
+_withNewLog (MockJSFunction3  a b _ ) log = MockJSFunction3 a b log
 _withNewLog (MockJSObject     a b _ ) log = MockJSObject a b log
 _withNewLog (MockJSString     a b _ ) log = MockJSString a b log
 _withNewLog (MockJSDouble     a b _ ) log = MockJSDouble a b log
@@ -128,7 +134,9 @@ _withNewKids a _ = a
 _ptr :: MockJSVal -> Int
 _ptr (MockJSElement a _ _ _ _) = a
 _ptr (MockJSTextNode   a _ _ ) = a
-_ptr (MockJSFunction   a _ _ ) = a
+_ptr (MockJSFunction1  a _ _ ) = a
+_ptr (MockJSFunction2  a _ _ ) = a
+_ptr (MockJSFunction3  a _ _ ) = a
 _ptr (MockJSObject     a _ _ ) = a
 _ptr (MockJSString     a _ _ ) = a
 _ptr (MockJSDouble     a _ _ ) = a
@@ -142,7 +150,7 @@ _eventTargetAddEventListener
   -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
-_eventTargetAddEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
+_eventTargetAddEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction1 m _ logm)
   = pure
     ( MockAttributes atts $ insert evt fn lstns
     , logn <> [ListenerReceived evt m]
@@ -199,7 +207,7 @@ _eventTargetRemoveEventListener
   -> String
   -> MockJSVal
   -> IO (MockAttributes, [LogEvent], [LogEvent])
-_eventTargetRemoveEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction m _ logm)
+_eventTargetRemoveEventListener (MockJSElement n _ (MockAttributes atts lstns) _ logn) evt fn@(MockJSFunction1 m _ logm)
   = maybe
     (error ("Listener " <> show m <> " not child of " <> show n))
     (\x -> pure
@@ -269,7 +277,9 @@ _nodeChildNodes (MockJSElement _ _ _ kids _) = return $ fmap _ptr kids
 _nodeChildNodes _ = error "Can only get children of element"
 
 __freeCallback :: MockJSVal -> IO [LogEvent]
-__freeCallback (MockJSFunction n _ log) = pure (log <> [FreeCallback n])
+__freeCallback (MockJSFunction1 n _ log) = pure (log <> [FreeCallback n])
+__freeCallback (MockJSFunction2 n _ log) = pure (log <> [FreeCallback n])
+__freeCallback (MockJSFunction3 n _ log) = pure (log <> [FreeCallback n])
 __freeCallback _                        = error "Can only free function"
 
 isFree :: LogEvent -> Bool
@@ -281,7 +291,7 @@ hasFree l = or (fmap isFree l)
 
 -- todo give real number
 dummyClick :: MockJSVal -> IO ()
-dummyClick (MockJSFunction _ f logs) = do
+dummyClick (MockJSFunction1 _ f logs) = do
   if hasFree logs then error "Trying to call freed callback" else pure ()
   f $ MockMouseEvent (-1)
 
@@ -558,10 +568,24 @@ _'nodeInsertBefore env parent newItem existingItem = do
   wrt env newItem $ _withNewLog _newItem newLogNewItem
   wrt env existingItem $ _withNewLog _existingItem newLogExistingItem
 
-_'makeHaskellCallback :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
-_'makeHaskellCallback env cb = do
+_'makeHaskellCallback1 :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback1 env cb = do
   i <- incr env
-  let elt = MockJSFunction i (cb . _ptr) [MadeCallback i]
+  let elt = MockJSFunction1 i (cb . _ptr) [MadeCallback i]
+  wrt env i elt
+  return i
+
+_'makeHaskellCallback2 :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback2 env cb = do
+  i <- incr env
+  let elt = MockJSFunction2 i (cb . _ptr) [MadeCallback i]
+  wrt env i elt
+  return i
+
+_'makeHaskellCallback3 :: IORef MockBrowserInternal -> (Int -> IO ()) -> IO Int
+_'makeHaskellCallback3 env cb = do
+  i <- incr env
+  let elt = MockJSFunction3 i (cb . _ptr) [MadeCallback i]
   wrt env i elt
   return i
 
@@ -689,7 +713,9 @@ makeMockBrowserWithContext r = return JSEnv
   , setValue               = _'setValue r
   , invokeOn1              = _'invokeOn1 r
   , invokeOn2              = _'invokeOn2 r
-  , _makeHaskellCallback   = _'makeHaskellCallback r
+  , _makeHaskellCallback1  = _'makeHaskellCallback1 r
+  , _makeHaskellCallback2  = _'makeHaskellCallback2 r
+  , _makeHaskellCallback3  = _'makeHaskellCallback3 r
   , mathRandom             = _'mathRandom r
   }
 

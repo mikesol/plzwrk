@@ -61,7 +61,9 @@ asteriusBrowser = return JSEnv
   , setValue                       = _setValue
   , invokeOn1                      = _invokeOn1
   , invokeOn2                      = _invokeOn2
-  , _makeHaskellCallback           = __makeHaskellCallback
+  , _makeHaskellCallback1          = __makeHaskellCallback1
+  , _makeHaskellCallback2          = __makeHaskellCallback2
+  , _makeHaskellCallback3          = __makeHaskellCallback3
   , mathRandom                     = _mathRandom
   }
 
@@ -210,9 +212,19 @@ _setValue a b c = _js_setValue a (toJSString b) c
 _setValue' :: JSVal -> String -> String -> IO ()
 _setValue' a b c = _js_setValue a (toJSString b) $ _s2v (toJSString c)
 
-__makeHaskellCallback :: (JSVal -> IO ()) -> IO JSVal
-__makeHaskellCallback a = do
+__makeHaskellCallback1 :: (JSVal -> IO ()) -> IO JSVal
+__makeHaskellCallback1 a = do
   x <- makeHaskellCallback1 a
+  return $ getJSVal x
+
+__makeHaskellCallback2 :: (JSVal -> JSVal -> IO ()) -> IO JSVal
+__makeHaskellCallback2 a = do
+  x <- makeHaskellCallback2 a
+  return $ getJSVal x
+
+__makeHaskellCallback3 :: (JSVal -> JSVal -> JSVal -> IO ()) -> IO JSVal
+__makeHaskellCallback3 a = do
+  x <- makeHaskellCallback3 a
   return $ getJSVal x
 
 __freeCallback :: JSVal -> IO ()
@@ -284,6 +296,12 @@ foreign import javascript "document.getElementById($1)"
 
 foreign import javascript "wrapper"
   makeHaskellCallback1 :: (JSVal -> IO ()) -> IO JSFunction
+
+foreign import javascript "wrapper"
+  makeHaskellCallback2 :: (JSVal -> JSVal -> IO ()) -> IO JSFunction
+
+foreign import javascript "wrapper"
+  makeHaskellCallback3 :: (JSVal -> JSVal -> JSVal -> IO ()) -> IO JSFunction
 
 # else
 module Web.Framework.Plzwrk.Asterius where

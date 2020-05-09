@@ -272,12 +272,18 @@ __freeCallback :: MockJSVal -> IO [LogEvent]
 __freeCallback (MockJSFunction n _ log) = pure (log <> [FreeCallback n])
 __freeCallback _                        = error "Can only free function"
 
-dummyClick :: MockJSVal -> IO ()
+isFree :: LogEvent -> Bool
+isFree (FreeCallback _) = True
+isFree _ = False
+
+hasFree :: [LogEvent] -> Bool
+hasFree l = or (fmap isFree l)
+
 -- todo give real number
-
-
-
-dummyClick (MockJSFunction _ f _) = f $ MockMouseEvent (-1)
+dummyClick :: MockJSVal -> IO ()
+dummyClick (MockJSFunction _ f logs) = do
+  if hasFree logs then error "Trying to call freed callback" else pure ()
+  f $ MockMouseEvent (-1)
 
 
 _htmlElemenetClick :: MockJSVal -> IO ()

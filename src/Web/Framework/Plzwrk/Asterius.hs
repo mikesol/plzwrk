@@ -282,7 +282,7 @@ foreign import javascript "document.createTextNode($1)"
 foreign import javascript "document.getElementById($1)"
   js_documentGetElementById :: JSString -> IO JSVal
 
-foreign import javascript "wrapper oneshot"
+foreign import javascript "wrapper"
   makeHaskellCallback1 :: (JSVal -> IO ()) -> IO JSFunction
 
 # else

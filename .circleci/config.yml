@@ -1,4 +1,12 @@
 version: 2.1
+workflows:
+  docker_deploy:
+    jobs:
+      - build
+      - deploy
+          filters:
+            branches:
+              only: master
 jobs:
   build:
     docker:
@@ -33,6 +41,3 @@ jobs:
       - run:
           name: Push to dockerhub
           command: docker build -t meeshkan/plzwrk:latest ./ && docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push meeshkan/plzwrk:latest
-          filters:
-            branches:
-              only: master

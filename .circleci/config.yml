@@ -16,7 +16,7 @@ jobs:
           command: apt-get update
       - run:
           name: Install docker deps
-          command: apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+          command: apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
       - run:
           name: Get the docker key
           command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
@@ -28,7 +28,7 @@ jobs:
           command: apt-get update
       - run:
           name: Install docker
-          command: apt-get install docker-ce docker-ce-cli containerd.io
+          command: apt-get -y install docker-ce docker-ce-cli containerd.io
       - run:
           name: Resolve/Update Dependencies
           command: stack --no-terminal setup

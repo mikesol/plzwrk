@@ -79,12 +79,7 @@ stringAttribute = do
   char '"'
   return $ HSXStringAttribute value
 
-haskellTxtAttr = do
-  string "#t{"
-  value <- manyTill anyChar (string "}#")
-  ws
-  return $ HSXHaskellTxtAttribute value
-
+makeBracketed :: String -> Bool -> Parser String
 makeBracketed cmd contain = do
   let start = "#" <> cmd <> "{"
   let end   = "}#"
@@ -111,6 +106,11 @@ haskellTxtNode :: Parser HSX
 haskellTxtNode = do
   value <- makeBracketed "t" False
   return $ HSXHaskellText value
+
+haskellTxtAttr :: Parser HSXAttribute
+haskellTxtAttr = do
+  value <- makeBracketed "t" False
+  return $ HSXHaskellTxtAttribute value
 
 attribute = do
   name <- many (noneOf "= />")

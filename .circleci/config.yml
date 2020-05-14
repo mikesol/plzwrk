@@ -9,20 +9,20 @@ commands:
     parameters:
       dirname:
         type: string
-      steps:
-        - checkout
-        - run:
-            name: Install surge
-            command: npm install -g surge
-        - run:
-            name: Installs plzwrk
-            command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
-        - run:
-            name: Builds << parameters.dirname >>
-            command: cd << parameters.dirname >> && ahc-link --input-hs Main.hs --debug --browser --bundle
-        - run:
-            name: Uploads << parameters.dirname >> to surge
-            command: cd << parameters.dirname >> && cp Main.html index.html && PWSITE=<< parameters.dirname >> surge . "plzwrk-${PWSITE}-${CIRCLE_SHA1}.surge.sh"    
+    steps:
+      - checkout
+      - run:
+          name: Install surge
+          command: npm install -g surge
+      - run:
+          name: Installs plzwrk
+          command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
+      - run:
+          name: Builds << parameters.dirname >>
+          command: cd << parameters.dirname >> && ahc-link --input-hs Main.hs --debug --browser --bundle
+      - run:
+          name: Uploads << parameters.dirname >> to surge
+          command: cd << parameters.dirname >> && cp Main.html index.html && PWSITE=<< parameters.dirname >> surge . "plzwrk-${PWSITE}-${CIRCLE_SHA1}.surge.sh"    
 workflows:
   build_and_deploy:
     jobs:

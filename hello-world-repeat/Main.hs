@@ -9,12 +9,12 @@ data Person = Person { _name :: String, _age :: Int }
 main :: IO ()
 main = do
   browser <- asteriusBrowser
-  let mystyle = "background-color:blue"
-  let element = (\age -> [hsx'|<p>You are #t{show age} years old</p>|]) <$> _age
+  let mystyle = "background-color:pink"
+  let element = (\age -> [hsx'|<p>You just turned <span>#t{show age}#</span>. Congrats!</p>|]) <$> _age
   let bigger = (\name age -> [hsx'|<div style=#t{mystyle}#>
-    <p>#t{name}#</p>
+    <h1>#t{name}#</h1>
     #el{replicate age element}#
-    #e{element}#
+    #e{p__ ":-)"}#
   </div>
   |]) <$> _name <*> _age
   plzwrk' bigger (Person "Joe" 42) browser

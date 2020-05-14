@@ -41,6 +41,7 @@ jobs:
             - "/root/.stack"
             - ".stack-work"
   asterius:
+    resource_class: large
     docker:
       - image: terrorjack/asterius
     steps:

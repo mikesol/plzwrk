@@ -79,12 +79,6 @@ stringAttribute = do
   char '"'
   return $ HSXStringAttribute value
 
-haskellTxtAttr = do
-  string "#t{"
-  value <- manyTill anyChar (string "}#")
-  ws
-  return $ HSXHaskellTxtAttribute value
-
 makeBracketed cmd contain = do
   let start = "#" <> cmd <> "{"
   let end   = "}#"
@@ -92,6 +86,10 @@ makeBracketed cmd contain = do
   value <- manyTill anyChar (string end)
   ws
   return $ if contain then start <> value <> end else value
+
+haskellTxtAttr = do
+  value <- makeBracketed "t" False
+  return $ HSXHaskellCodeAttribute value
 
 haskellCodeAttr = do
   value <- makeBracketed "c" False

@@ -58,9 +58,39 @@ jobs:
           name: Builds hello-world
           command: cd hello-world && ahc-link --input-hs Main.hs --browser --bundle
       - run:
+          name: Builds hello-world-nested
+          command: cd hello-world-nested && ahc-link --input-hs Main.hs --browser --bundle
+      - run:
+          name: Builds hello-world-state
+          command: cd hello-world-state && ahc-link --input-hs Main.hs --browser --bundle
+      - run:
+          name: Builds hello-world-repeat
+          command: cd hello-world-repeat && ahc-link --input-hs Main.hs --browser --bundle   
+      - run:
+          name: Builds hello-world-state-click
+          command: cd hello-world-state-click && ahc-link --input-hs Main.hs --browser --bundle
+      - run:
+          name: Builds hello-world-with-listener
+          command: cd hello-world-with-listener && ahc-link --input-hs Main.hs --browser --bundle
+      - run:
           name: Uploads hello-world to surge
           command: cd hello-world && cp Main.html index.html && surge . "plzwrk-hello-world-${CIRCLE_SHA1}.surge.sh"
       - run:
+          name: Uploads hello-world-nested to surge
+          command: cd hello-world-nested && cp Main.html index.html && surge . "plzwrk-hello-world-nested-${CIRCLE_SHA1}.surge.sh"
+      - run:
+          name: Uploads hello-world-repeat to surge
+          command: cd hello-world-repeat && cp Main.html index.html && surge . "plzwrk-hello-world-repeat-${CIRCLE_SHA1}.surge.sh"  
+      - run:
+          name: Uploads hello-world-state to surge
+          command: cd hello-world-state && cp Main.html index.html && surge . "plzwrk-hello-world-state-${CIRCLE_SHA1}.surge.sh"  
+      - run:
+          name: Uploads hello-world-state-click to surge
+          command: cd hello-world-state-click && cp Main.html index.html && surge . "plzwrk-hello-world-state-click-${CIRCLE_SHA1}.surge.sh"  
+      - run:
+          name: Uploads hello-world-with-listener to surge
+          command: cd hello-world-with-listener && cp Main.html index.html && surge . "plzwrk-hello-world-with-listener-${CIRCLE_SHA1}.surge.sh"                      
+     - run:
           name: Uploads kitchen-sink to surge
           command: cd kitchen-sink && cp Main.html index.html && surge . "plzwrk-kitchen-sink-${CIRCLE_SHA1}.surge.sh"
   deploy:

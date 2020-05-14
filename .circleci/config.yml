@@ -27,27 +27,15 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - asterius-hello-world:
+      - asterius-hello-world: &requires_build
           requires:
             - build
-      - asterius-hello-world-nested:
-          requires:
-            - build
-      - asterius-hello-world-repeat:
-          requires:
-            - build
-      - asterius-hello-world-state:
-          requires:
-            - build
-      - asterius-hello-world-state-click:
-          requires:
-            - build
-      - asterius-hello-world-with-listener:
-          requires:
-            - build
-      - asterius-kitchen-sink:
-          requires:
-            - build
+      - asterius-hello-world-nested: *requires_build
+      - asterius-hello-world-repeat: *requires_build
+      - asterius-hello-world-state: *requires_build
+      - asterius-hello-world-state-click: *requires_build
+      - asterius-hello-world-with-listener: *requires_build
+      - asterius-kitchen-sink: *requires_build
       - deploy:
           requires:
             - asterius-hello-world

@@ -1,14 +1,62 @@
 version: 2.1
+executors:
+  asterius:
+    docker:
+      - image: terrorjack/asterius
+commands:
+  asterius_build:
+    description: "Used to build an asterius test"
+    parameters:
+      dirname:
+        type: string
+      steps:
+        - checkout
+        - run:
+            name: Install surge
+            command: npm install -g surge
+        - run:
+            name: Installs plzwrk
+            command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
+        - run:
+            name: Builds << parameters.dirname >>
+            command: cd << parameters.dirname >> && ahc-link --input-hs Main.hs --debug --browser --bundle
+        - run:
+            name: Uploads << parameters.dirname >> to surge
+            command: cd << parameters.dirname >> && cp Main.html index.html && PWSITE=<< parameters.dirname >> surge . "plzwrk-${PWSITE}-${CIRCLE_SHA1}.surge.sh"    
 workflows:
   build_and_deploy:
     jobs:
       - build
-      - asterius:
+      - asterius-hello-world:
+          requires:
+            - build
+      - asterius-hello-world-nested:
+          requires:
+            - build
+      - asterius-hello-world-repeat:
+          requires:
+            - build
+      - asterius-hello-world-state:
+          requires:
+            - build
+      - asterius-hello-world-state-click:
+          requires:
+            - build
+      - asterius-hello-world-with-listener:
+          requires:
+            - build
+      - asterius-kitichen-sink:
           requires:
             - build
       - deploy:
           requires:
-            - asterius
+            - asterius-hello-world
+            - asterius-hello-world-nested
+            - asterius-hello-world-repeat
+            - asterius-hello-world-state
+            - asterius-hello-world-state-click
+            - asterius-hello-world-with-listener
+            - asterius-kitichen-sink
           filters:
             branches:
               only: master
@@ -40,60 +88,42 @@ jobs:
           paths:
             - "/root/.stack"
             - ".stack-work"
-  asterius:
-    resource_class: large
-    docker:
-      - image: terrorjack/asterius
+  asterius-hello-world:
+    executor: asterius
     steps:
-      - checkout
-      - run:
-          name: Install surge
-          command: npm install -g surge
-      - run:
-          name: Installs plzwrk
-          command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
-      - run:
-          name: Builds kitchen-sink
-          command: cd kitchen-sink && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Builds hello-world
-          command: cd hello-world && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Builds hello-world-nested
-          command: cd hello-world-nested && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Builds hello-world-state
-          command: cd hello-world-state && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Builds hello-world-repeat
-          command: cd hello-world-repeat && ahc-link --input-hs Main.hs --debug --browser --bundle   
-      - run:
-          name: Builds hello-world-state-click
-          command: cd hello-world-state-click && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Builds hello-world-with-listener
-          command: cd hello-world-with-listener && ahc-link --input-hs Main.hs --debug --browser --bundle
-      - run:
-          name: Uploads hello-world to surge
-          command: cd hello-world && cp Main.html index.html && surge . "plzwrk-hello-world-${CIRCLE_SHA1}.surge.sh"
-      - run:
-          name: Uploads hello-world-nested to surge
-          command: cd hello-world-nested && cp Main.html index.html && surge . "plzwrk-hello-world-nested-${CIRCLE_SHA1}.surge.sh"
-      - run:
-          name: Uploads hello-world-repeat to surge
-          command: cd hello-world-repeat && cp Main.html index.html && surge . "plzwrk-hello-world-repeat-${CIRCLE_SHA1}.surge.sh"  
-      - run:
-          name: Uploads hello-world-state to surge
-          command: cd hello-world-state && cp Main.html index.html && surge . "plzwrk-hello-world-state-${CIRCLE_SHA1}.surge.sh"  
-      - run:
-          name: Uploads hello-world-state-click to surge
-          command: cd hello-world-state-click && cp Main.html index.html && surge . "plzwrk-hello-world-state-click-${CIRCLE_SHA1}.surge.sh"  
-      - run:
-          name: Uploads hello-world-with-listener to surge
-          command: cd hello-world-with-listener && cp Main.html index.html && surge . "plzwrk-hello-world-with-listener-${CIRCLE_SHA1}.surge.sh"                      
-      - run:
-          name: Uploads kitchen-sink to surge
-          command: cd kitchen-sink && cp Main.html index.html && surge . "plzwrk-kitchen-sink-${CIRCLE_SHA1}.surge.sh"
+      - asterius_build:
+          dirname: hello-world
+  asterius-hello-world-nested:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: hello-world-nested
+  asterius-hello-world-repeat:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: hello-world-repeat
+  asterius-hello-world-state:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: hello-world-state
+  asterius-hello-world-state-click:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: hello-world-state-click
+    asterius-hello-world-with-listener:
+      executor: asterius
+      steps:
+        - asterius_build:
+            dirname: hello-world-with-listener
+    asterius-kitchen-sink:
+      executor: asterius
+      steps:
+        - asterius_build:
+            dirname: kitchen-sink
+                                  
   deploy:
     docker:
       - image: docker

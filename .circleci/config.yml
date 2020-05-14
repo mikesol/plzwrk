@@ -53,25 +53,25 @@ jobs:
           command: ahc-cabal v1-install -j1 --prefix=$ASTERIUS_LIB_DIR --package-db=clear --package-db=global --constraint "plzwrk +plzwrk-enable-asterius" .
       - run:
           name: Builds kitchen-sink
-          command: cd kitchen-sink && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd kitchen-sink && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Builds hello-world
-          command: cd hello-world && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd hello-world && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Builds hello-world-nested
-          command: cd hello-world-nested && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd hello-world-nested && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Builds hello-world-state
-          command: cd hello-world-state && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd hello-world-state && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Builds hello-world-repeat
-          command: cd hello-world-repeat && ahc-link --input-hs Main.hs --browser --bundle   
+          command: cd hello-world-repeat && ahc-link --input-hs Main.hs --debug --browser --bundle   
       - run:
           name: Builds hello-world-state-click
-          command: cd hello-world-state-click && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd hello-world-state-click && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Builds hello-world-with-listener
-          command: cd hello-world-with-listener && ahc-link --input-hs Main.hs --browser --bundle
+          command: cd hello-world-with-listener && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Uploads hello-world to surge
           command: cd hello-world && cp Main.html index.html && surge . "plzwrk-hello-world-${CIRCLE_SHA1}.surge.sh"

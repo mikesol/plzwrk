@@ -89,7 +89,7 @@ makeBracketed cmd contain = do
 
 haskellTxtAttr = do
   value <- makeBracketed "t" False
-  return $ HSXHaskellCodeAttribute value
+  return $ HSXHaskellTxtAttribute value
 
 haskellCodeAttr = do
   value <- makeBracketed "c" False

@@ -144,8 +144,6 @@ dom = [hsx|<button click=#c{eh}#>Click here</button>|]
 
 To handle events, you can use one of the functions exported by `Web.Framework.Plzwrk`. This could be useful to extract values from input events, for instance. Please see the [Hackage documentation](https://hackage.haskell.org/package/plzwrk) for more information.
 
-> If you are using the Asterius backend, callback functions are still quite fragile and subject to breakage. The less third-party libraries you use in them, the better. For example, avoid using `Data.Text` and `aeson` if possible.
-
 ## Server-side rendering
 
 `plzwrk` supports server-side rendering. To do this, you have to compile your site twice:

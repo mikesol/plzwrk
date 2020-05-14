@@ -45,7 +45,7 @@ workflows:
       - asterius-hello-world-with-listener:
           requires:
             - build
-      - asterius-kitichen-sink:
+      - asterius-kitchen-sink:
           requires:
             - build
       - deploy:
@@ -56,7 +56,7 @@ workflows:
             - asterius-hello-world-state
             - asterius-hello-world-state-click
             - asterius-hello-world-with-listener
-            - asterius-kitichen-sink
+            - asterius-kitchen-sink
           filters:
             branches:
               only: master

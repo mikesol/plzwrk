@@ -113,16 +113,16 @@ jobs:
     steps:
       - asterius_build:
           dirname: hello-world-state-click
-    asterius-hello-world-with-listener:
-      executor: asterius
-      steps:
-        - asterius_build:
-            dirname: hello-world-with-listener
-    asterius-kitchen-sink:
-      executor: asterius
-      steps:
-        - asterius_build:
-            dirname: kitchen-sink
+  asterius-hello-world-with-listener:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: hello-world-with-listener
+  asterius-kitchen-sink:
+    executor: asterius
+    steps:
+      - asterius_build:
+          dirname: kitchen-sink
                                   
   deploy:
     docker:

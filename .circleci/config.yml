@@ -22,20 +22,32 @@ commands:
           command: cd << parameters.dirname >> && ahc-link --input-hs Main.hs --debug --browser --bundle
       - run:
           name: Uploads << parameters.dirname >> to surge
-          command: cd << parameters.dirname >> && cp Main.html index.html && PWSITE=<< parameters.dirname >> surge . "plzwrk-${PWSITE}-${CIRCLE_SHA1}.surge.sh"    
+          command: cd << parameters.dirname >> && cp Main.html index.html && surge . "plzwrk-<< parameters.dirname >>-${CIRCLE_SHA1}.surge.sh"    
 workflows:
   build_and_deploy:
     jobs:
       - build
-      - asterius-hello-world: &requires_build
+      - asterius-hello-world:
           requires:
             - build
-      - asterius-hello-world-nested: *requires_build
-      - asterius-hello-world-repeat: *requires_build
-      - asterius-hello-world-state: *requires_build
-      - asterius-hello-world-state-click: *requires_build
-      - asterius-hello-world-with-listener: *requires_build
-      - asterius-kitchen-sink: *requires_build
+      - asterius-hello-world-nested:
+          requires:
+            - build
+      - asterius-hello-world-repeat:
+          requires:
+            - build
+      - asterius-hello-world-state:
+          requires:
+            - build
+      - asterius-hello-world-state-click:
+          requires:
+            - build
+      - asterius-hello-world-with-listener:
+          requires:
+            - build
+      - asterius-kitchen-sink:
+          requires:
+            - build
       - deploy:
           requires:
             - asterius-hello-world

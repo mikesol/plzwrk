@@ -27,6 +27,8 @@ import           Data.List                      ( foldl' )
 import           Text.Parsec
 import           Text.Parsec.String
 
+type HSXParser = ParsecT String ()
+
 data HSXAttribute = HSXStringAttribute String
                  | HSXHaskellCodeAttribute String
                  | HSXHaskellTxtAttribute String deriving (Show, Eq)
@@ -39,9 +41,10 @@ data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXBody String
         deriving (Show, Eq)
 
-hsx :: Parser HSX
+hsx :: Monad m => HSXParser m HSX
 hsx = tag
 
+tag :: Monad m => HSXParser m HSX
 tag = do
   char '<'
   ws
@@ -58,6 +61,7 @@ tag = do
       ws
       return (HSXElement name attr elementBody)
 
+elementHSXBody :: Monad m => HSXParser m HSX
 elementHSXBody =
   ws
     *> (   try tag
@@ -68,18 +72,20 @@ elementHSXBody =
        <?> "A tag, a piece of code or some text"
        )
 
-endTag :: String -> Parser String
+endTag :: Monad m => String -> HSXParser m String
 endTag str = string "</" *> string str <* char '>'
 
+text :: Monad m => HSXParser m HSX
 text = HSXBody <$> many1 (noneOf "><")
 
+stringAttribute :: Monad m => HSXParser m HSXAttribute
 stringAttribute = do
   char '"'
   value <- many (noneOf ['"'])
   char '"'
   return $ HSXStringAttribute value
 
-makeBracketed :: String -> Bool -> Parser String
+makeBracketed :: Monad m => String -> Bool -> HSXParser m String
 makeBracketed cmd contain = do
   let start = "#" <> cmd <> "{"
   let end   = "}#"
@@ -88,30 +94,32 @@ makeBracketed cmd contain = do
   ws
   return $ if contain then start <> value <> end else value
 
+haskellCodeAttr :: Monad m => HSXParser m HSXAttribute
 haskellCodeAttr = do
   value <- makeBracketed "c" False
   return $ HSXHaskellCodeAttribute value
 
-haskellCodeNode :: Parser HSX
+haskellCodeNode :: Monad m => HSXParser m HSX
 haskellCodeNode = do
   value <- makeBracketed "e" False
   return $ HSXHaskellCode value
 
-haskellCodeNodes :: Parser HSX
+haskellCodeNodes :: Monad m => HSXParser m HSX
 haskellCodeNodes = do
   value <- makeBracketed "el" False
   return $ HSXHaskellCodeList value
 
-haskellTxtNode :: Parser HSX
+haskellTxtNode :: Monad m => HSXParser m HSX
 haskellTxtNode = do
   value <- makeBracketed "t" False
   return $ HSXHaskellText value
 
-haskellTxtAttr :: Parser HSXAttribute
+haskellTxtAttr :: Monad m => HSXParser m HSXAttribute
 haskellTxtAttr = do
   value <- makeBracketed "t" False
   return $ HSXHaskellTxtAttribute value
 
+attribute :: Monad m => HSXParser m (String, HSXAttribute)
 attribute = do
   name <- many (noneOf "= />")
   ws
@@ -121,7 +129,7 @@ attribute = do
   ws
   return (name, value)
 
-ws :: Parser ()
+ws :: Monad m => HSXParser m ()
 ws = void $ many $ oneOf " \t\r\n"
 
 parseHSX :: MF.MonadFail m => (String, Int, Int) -> String -> m HSX

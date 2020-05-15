@@ -136,22 +136,19 @@ attribute = do
 ws :: MonadLoggerIO m => HSXParser m ()
 ws = void $ many $ oneOf " \t\r\n"
 
-p :: MonadLoggerIO m => String -> Int -> Int -> HSXParser (NoLoggingT m) HSX
-p file line col = do
-  updatePosition file line col
-  ws
-  e <- hsx
-  ws
-  eof
-  return e
-
-
 parseHSX :: (MF.MonadFail m, MonadLoggerIO m) => (String, Int, Int) -> String -> m HSX
 parseHSX (file, line, col) s = do
-  res <- runNoLoggingT (runParserT (p file line col) () "" s)
+  res <- runNoLoggingT (NoLoggingT (runParserT p () "" s))
   case res of
     Left err -> MF.fail $ show err
     Right e  -> return e
+  where p = do
+    updatePosition file line col
+    ws
+    e <- hsx
+    ws
+    eof
+    return e
 
 updatePosition file line col = do
   pos <- getPosition

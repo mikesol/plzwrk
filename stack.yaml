@@ -48,12 +48,15 @@ extra-deps:
 - text-1.2.4.0
 - transformers-0.5.6.2
 - unordered-containers-0.2.10.0
+- monad-logger-0.3.32
 - mtl-2.2.2
 - neat-interpolation-0.5.1
 - split-0.2.3.4
 - haskell-src-meta-0.8.5
 - template-haskell-2.15.0.0
 - parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
+#### for logger
+- Cabal-3.2.0.0@sha256:d0d7a1f405f25d0000f5ddef684838bc264842304fd4e7f80ca92b997b710874,27320
 #### for testing using keyvaluehash as our mock dom
 - hspec-2.7.1
 # Override default flag values for local packages and extra-deps

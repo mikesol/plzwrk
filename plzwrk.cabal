@@ -57,6 +57,7 @@ library
     , haskell-src-meta >= 0.8.5 && < 0.9
     , mtl >= 2.2.2 && < 2.3
     , parsec >= 3.1.14 && < 3.2
+    , monad-logger >= 0.3.32 && < 0.4
     , split >= 0.2.3 && < 0.3
     , template-haskell >= 2.14.0 && < 2.16
     , text >= 1.2.3 && < 1.3

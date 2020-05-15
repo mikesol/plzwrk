@@ -5,6 +5,8 @@ module Web.Framework.Plzwrk.TH.QuoteHSX
   )
 where
 
+import Control.Monad.Logger
+import qualified Control.Monad.Trans as Trans
 import           Data.List.Split
 import qualified Data.Hashable                 as H
 import qualified Language.Haskell.TH           as TH
@@ -106,6 +108,10 @@ hsxToExpQ lam returnAsList (HSXBody b) = asList
   $ TH.appE (TH.conE (TH.mkName "PwTextNode")) (TH.litE (TH.StringL b))
   )
 
+instance MonadLogger TH.Q where monadLoggerLog _ _ _ = return $ TH.reportWarning "Using monad logger"
+instance MonadLoggerIO TH.Q where askLoggerIO = return (\_ _ _ _ -> return ())
+
+quoteExprExp :: Bool -> String -> TH.Q TH.Exp
 quoteExprExp b s = do
   pos    <- getPosition
   result <- parseHSX pos s

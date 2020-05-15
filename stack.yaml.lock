@@ -54,6 +54,13 @@ packages:
   original:
     hackage: unordered-containers-0.2.10.0
 - completed:
+    hackage: monad-logger-0.3.32@sha256:edb8a030012e4cf6dc19930ec36f846eeafcc9d871bd5bf0e863d78f6878b877,1755
+    pantry-tree:
+      size: 396
+      sha256: f32a5d7d04f45546ff60f78b0605bde8f5e7563802c7edb6e47e257102639966
+  original:
+    hackage: monad-logger-0.3.32
+- completed:
     hackage: mtl-2.2.2@sha256:1050fb71acd9f5d67da7d992583f5bd0eb14407b9dc7acc122af1b738b706ca3,2261
     pantry-tree:
       size: 1713
@@ -95,6 +102,13 @@ packages:
       sha256: c17cc12ba9a912521d58d8bcee07830351fe27483d9309ebdac8e32175e10706
   original:
     hackage: parsec-3.1.14.0@sha256:63a4555d6ea2aaccd8588fc809e5d137e72b668898ab3b171ce8458b792f0f36,4356
+- completed:
+    hackage: Cabal-3.2.0.0@sha256:d0d7a1f405f25d0000f5ddef684838bc264842304fd4e7f80ca92b997b710874,27320
+    pantry-tree:
+      size: 40963
+      sha256: b122f2d76dc82a350d3986fa0cbc4ecf9c3bb4f9c598ccbfb3b2bfdde02f3698
+  original:
+    hackage: Cabal-3.2.0.0@sha256:d0d7a1f405f25d0000f5ddef684838bc264842304fd4e7f80ca92b997b710874,27320
 - completed:
     hackage: hspec-2.7.1@sha256:0aa48928ce80a34f8ff8c5ef114bb6807edfb8d884bcd7211eceed710e7fb7a8,1769
     pantry-tree:

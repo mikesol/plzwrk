@@ -3,6 +3,7 @@ module Web.Framework.Plzwrk.TH.HSX
   , HSX(..)
   , parseHSX
   ------------ for debugging
+
   , endTag
   , elementHSXBody
   , attribute
@@ -15,12 +16,15 @@ module Web.Framework.Plzwrk.TH.HSX
   )
 where
 
+import Control.Monad.Identity (Identity)
 import           Control.Applicative            ( (<*)
                                                 , (*>)
                                                 , (<$>)
                                                 , (<$)
                                                 )
-import           Control.Monad                  ( void )
+import Control.Monad.Trans (lift)
+import           Control.Monad
+import           Control.Monad.Logger
 import qualified Control.Monad.Fail            as MF
 import           Data.Char
 import           Data.List                      ( foldl' )
@@ -41,10 +45,10 @@ data HSX =  HSXElement String [(String, HSXAttribute)] [HSX]
           | HSXBody String
         deriving (Show, Eq)
 
-hsx :: Monad m => HSXParser m HSX
+hsx :: MonadLoggerIO m => HSXParser m HSX
 hsx = tag
 
-tag :: Monad m => HSXParser m HSX
+tag :: MonadLoggerIO m => HSXParser m HSX
 tag = do
   char '<'
   ws
@@ -61,7 +65,7 @@ tag = do
       ws
       return (HSXElement name attr elementBody)
 
-elementHSXBody :: Monad m => HSXParser m HSX
+elementHSXBody :: MonadLoggerIO m => HSXParser m HSX
 elementHSXBody =
   ws
     *> (   try tag
@@ -72,20 +76,20 @@ elementHSXBody =
        <?> "A tag, a piece of code or some text"
        )
 
-endTag :: Monad m => String -> HSXParser m String
+endTag :: MonadLoggerIO m => String -> HSXParser m String
 endTag str = string "</" *> string str <* char '>'
 
-text :: Monad m => HSXParser m HSX
+text :: MonadLoggerIO m => HSXParser m HSX
 text = HSXBody <$> many1 (noneOf "><")
 
-stringAttribute :: Monad m => HSXParser m HSXAttribute
+stringAttribute :: MonadLoggerIO m => HSXParser m HSXAttribute
 stringAttribute = do
   char '"'
   value <- many (noneOf ['"'])
   char '"'
   return $ HSXStringAttribute value
 
-makeBracketed :: Monad m => String -> Bool -> HSXParser m String
+makeBracketed :: MonadLoggerIO m => String -> Bool -> HSXParser m String
 makeBracketed cmd contain = do
   let start = "#" <> cmd <> "{"
   let end   = "}#"
@@ -94,32 +98,32 @@ makeBracketed cmd contain = do
   ws
   return $ if contain then start <> value <> end else value
 
-haskellCodeAttr :: Monad m => HSXParser m HSXAttribute
+haskellCodeAttr :: MonadLoggerIO m => HSXParser m HSXAttribute
 haskellCodeAttr = do
   value <- makeBracketed "c" False
   return $ HSXHaskellCodeAttribute value
 
-haskellCodeNode :: Monad m => HSXParser m HSX
+haskellCodeNode :: MonadLoggerIO m => HSXParser m HSX
 haskellCodeNode = do
   value <- makeBracketed "e" False
   return $ HSXHaskellCode value
 
-haskellCodeNodes :: Monad m => HSXParser m HSX
+haskellCodeNodes :: MonadLoggerIO m => HSXParser m HSX
 haskellCodeNodes = do
   value <- makeBracketed "el" False
   return $ HSXHaskellCodeList value
 
-haskellTxtNode :: Monad m => HSXParser m HSX
+haskellTxtNode :: MonadLoggerIO m => HSXParser m HSX
 haskellTxtNode = do
   value <- makeBracketed "t" False
   return $ HSXHaskellText value
 
-haskellTxtAttr :: Monad m => HSXParser m HSXAttribute
+haskellTxtAttr :: MonadLoggerIO m => HSXParser m HSXAttribute
 haskellTxtAttr = do
   value <- makeBracketed "t" False
   return $ HSXHaskellTxtAttribute value
 
-attribute :: Monad m => HSXParser m (String, HSXAttribute)
+attribute :: MonadLoggerIO m => HSXParser m (String, HSXAttribute)
 attribute = do
   name <- many (noneOf "= />")
   ws
@@ -129,21 +133,25 @@ attribute = do
   ws
   return (name, value)
 
-ws :: Monad m => HSXParser m ()
+ws :: MonadLoggerIO m => HSXParser m ()
 ws = void $ many $ oneOf " \t\r\n"
 
-parseHSX :: MF.MonadFail m => (String, Int, Int) -> String -> m HSX
-parseHSX (file, line, col) s = case runParser p () "" s of
-  Left  err -> MF.fail $ show err
-  Right e   -> return e
- where
-  p = do
-    updatePosition file line col
-    ws
-    e <- hsx
-    ws
-    eof
-    return e
+p :: MonadLoggerIO m => String -> Int -> Int -> HSXParser (NoLoggingT m) HSX
+p file line col = do
+  updatePosition file line col
+  ws
+  e <- hsx
+  ws
+  eof
+  return e
+
+
+parseHSX :: (MF.MonadFail m, MonadLoggerIO m) => (String, Int, Int) -> String -> m HSX
+parseHSX (file, line, col) s = do
+  res <- runNoLoggingT (runParserT (p file line col) () "" s)
+  case res of
+    Left err -> MF.fail $ show err
+    Right e  -> return e
 
 updatePosition file line col = do
   pos <- getPosition

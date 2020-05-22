@@ -1,5 +1,10 @@
 # Changelog for plzwrk
 
+## 0.0.0.10
+
+- Adds logging to the parser for easier debugging.
+- Renames `hsx` to `pwx`.
+
 ## 0.0.0.9
 
 - Renames `Browserful` to `JSEnv`.
@@ -7,7 +12,7 @@
 
 ## 0.0.0.8
 
-- Fixes a bug in the HSX parser that rejected certain valid text nodes
+- Fixes a bug in the PWX parser that rejected certain valid text nodes
 
 ## 0.0.0.7
 
@@ -20,11 +25,11 @@
 ## 0.0.0.5
 
 - Adds bounds for cabal packages
-- Explicity declares `Control.Monad.Fail` in `HSX.hs` to allow automated haddock builds.
+- Explicity declares `Control.Monad.Fail` in `PWX.hs` to allow automated haddock builds.
 
 ## 0.0.0.4
 
-- Adds `hsx` and `hsx'` for `jsx`-like manipulation.
+- Adds `pwx` and `pwx'` for `jsx`-like manipulation.
 
 ## 0.0.0.3
 

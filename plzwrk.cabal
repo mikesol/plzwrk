@@ -44,8 +44,8 @@ library
     , Web.Framework.Plzwrk.JSEnv
     , Web.Framework.Plzwrk.Domify
     , Web.Framework.Plzwrk.Util
-    , Web.Framework.Plzwrk.TH.HSX
-    , Web.Framework.Plzwrk.TH.QuoteHSX
+    , Web.Framework.Plzwrk.TH.PWX
+    , Web.Framework.Plzwrk.TH.QuotePWX
   hs-source-dirs:
       src
   build-depends:
@@ -75,7 +75,7 @@ test-suite plzwrk-test
   main-is: Spec.hs
   other-modules:
       DOMSpec
-    , HSXSpec
+    , PWXSpec
     , Paths_plzwrk
   hs-source-dirs:
       test

@@ -1,8 +1,8 @@
 import DOMSpec ( domSpec )
-import HSXSpec ( hsxSpec )
+import PWXSpec ( pwxSpec )
 import           Test.Hspec
 
 main :: IO ()
 main = hspec $ do
   domSpec
-  hsxSpec
+  pwxSpec

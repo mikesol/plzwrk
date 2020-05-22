@@ -8,4 +8,4 @@ import           Web.Framework.Plzwrk.Tag       ( p__ )
 main :: IO ()
 main = do
   browser <- asteriusBrowser
-  plzwrk'_ [hsx|<p>Hello world!</p>|] browser
+  plzwrk'_ [pwx|<p>Hello world!</p>|] browser

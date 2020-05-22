@@ -22,10 +22,14 @@ module Web.Framework.Plzwrk
   , PwNode(..)
   , PwAttribute(..)
   , JSEnv(..)
-  -- hsx
-  , hsx
-  , hsx'
+  -- pwx
+  , pwx
+  , pwx'
   , plusplus
+  , parsePWX
+  , parsePWX_
+  , PWX(..)
+  , PWXAttribute(..)
   -- util
   , pF
   , pT
@@ -57,4 +61,5 @@ import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.JSEnv
 import           Web.Framework.Plzwrk.Domify
 import           Web.Framework.Plzwrk.Util
-import           Web.Framework.Plzwrk.TH.QuoteHSX
+import           Web.Framework.Plzwrk.TH.PWX
+import           Web.Framework.Plzwrk.TH.QuotePWX

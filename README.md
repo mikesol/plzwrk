@@ -17,7 +17,7 @@ Available as a Hackage package: [`plzwrk`](https://hackage.haskell.org/package/p
 * [Making a webpage](#making-a-webpage)
 * [Documentation](#documentation)
 * [Design of `plzwrk`](#design-of-plzwrk)
-  * [HSX](#hsx)
+  * [PWX](#pwx)
   * [Hydrating with a state](#hydrating-with-a-state)
   * [Event handlers](#event-handlers)
 * [Server-side rendering](#server-side-rendering)
@@ -53,7 +53,7 @@ import Web.Framework.Plzwrk.Asterius
 main :: IO ()
 main = do
   browser <- asteriusBrowser
-  plzwrk'_ [hsx|<p>Hello world!</p>|] browser
+  plzwrk'_ [pwx|<p>Hello world!</p>|] browser
 ```
 
 [See the Hello World example live](https://plzwrk-hello-world.surge.sh).
@@ -84,7 +84,7 @@ The main documentation for `plzwrk` is on [Hackage](https://hackage.haskell.org/
 The four importable modules are:
 
 - [`Web.Frameworks.Plzwrk`](https://hackage.haskell.org/package/plzwrk-0.0.0.9/docs/Web-Framework-Plzwrk.html) for the basic functions
-- [`Web.Frameworks.Plzwrk.Tag`](https://hackage.haskell.org/package/plzwrk-0.0.0.9/docs/Web-Framework-Plzwrk-Tag.html) for helper functions to make takes like `input` or `br` if you are not using `hsx`.
+- [`Web.Frameworks.Plzwrk.Tag`](https://hackage.haskell.org/package/plzwrk-0.0.0.9/docs/Web-Framework-Plzwrk-Tag.html) for helper functions to make takes like `input` or `br` if you are not using `pwx`.
 - [`Web.Frameworks.Plzwrk.MockJSVal`](https://hackage.haskell.org/package/plzwrk-0.0.0.9/docs/Web-Framework-Plzwrk-MockJSVal.html) to use a mock browser.
 - [`Web.Frameworks.Plzwrk.Asterius`](https://hackage.haskell.org/package/plzwrk-0.0.0.9/docs/Web-Framework-Plzwrk-Asterius.html) to use a bindings for a real browser courtesy of [Asterius](https://github.com/tweag/asterius).
 
@@ -98,11 +98,11 @@ data MyState = MkMyState { _name :: Text, age :: Int, _tags :: [Text] }
 
 -- Function hydrating a DOM with elementse from the state
 makeP = (\name age ->
-  [hsx'|<p>#t{concat [name, " is the name and ", show age, " is my age."]}#</p>|])
+  [pwx'|<p>#t{concat [name, " is the name and ", show age, " is my age."]}#</p>|])
     <$> _name
     <*> _age
 
--- The same function using functional tags instead of hsx
+-- The same function using functional tags instead of pwx
 makeP = (\name age ->
     p'__ concat [name, " is the name and ", show age, " is my age."])
       <$> _name
@@ -115,9 +115,9 @@ HTML-creation functions can be nested, allowing for powerful abstractions:
 nested = div_ (take 10 $ repeat makeP)
 ```
 
-### HSX
+### PWX
 
-`hsx` is similar to [`jsx`](https://reactjs.org/docs/introducing-jsx.html). The main difference is that instead of only using `{}`, `hsx` uses four different varieties of `#{}#`:
+`pwx` is similar to [`jsx`](https://reactjs.org/docs/introducing-jsx.html). The main difference is that instead of only using `{}`, `pwx` uses four different varieties of `#{}#`:
 
 - `#e{}#` for a single element.
 - `#el{}#` for a list of elements.
@@ -126,7 +126,7 @@ nested = div_ (take 10 $ repeat makeP)
 
 ### Hydrating with a state
 
-HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments from a state and no apostrophe (ie `div`) if they don't. The same is true of `hsx`, ie `[hsx|<br />|]` versus `(s -> [hsx'|<br />|])`. 
+HTML-creation functions use an apostrophe after the tag name (ie `div'`) if they accept arguments from a state and no apostrophe (ie `div`) if they don't. The same is true of `pwx`, ie `[pwx|<br />|]` versus `(s -> [pwx'|<br />|])`. 
 
 Additionally, HTML-creation functions for tags that don't have any attributes (class, style, etc) are marked with a trailing underscore (ie `div_ [p__ "hello"]`), and tags that only accept text are marked with two trailing underscores (ie `p__ "hello"`).
 
@@ -139,7 +139,7 @@ For example, if the state is an integer, a valid event handler could be:
 ```haskell
 eh :: opq -> Int -> IO Int
 eh _ i = pure $ i + 1
-dom = [hsx|<button click=#c{eh}#>Click here</button>|]
+dom = [pwx|<button click=#c{eh}#>Click here</button>|]
 ```
 
 To handle events, you can use one of the functions exported by `Web.Framework.Plzwrk`. This could be useful to extract values from input events, for instance. Please see the [Hackage documentation](https://hackage.haskell.org/package/plzwrk) for more information.

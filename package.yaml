@@ -1,14 +1,14 @@
-name:                plzwrk
-version:             0.0.0.9
-github:              "meeshkan/plzwrk"
-license:             BSD3
-author:              "Mike Solomon"
-maintainer:          "mike@meeshkan.com"
-copyright:           "2020 Mike Solomon"
+name: plzwrk
+version: 0.0.0.10
+github: "meeshkan/plzwrk"
+license: BSD3
+author: "Mike Solomon"
+maintainer: "mike@meeshkan.com"
+copyright: "2020 Mike Solomon"
 
 extra-source-files:
-- README.md
-- ChangeLog.md
+  - README.md
+  - ChangeLog.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -17,21 +17,21 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/meeshkan/plzwrk#readme>
+description: Please see the README on GitHub at <https://github.com/meeshkan/plzwrk#readme>
 
 dependencies:
-- base >= 4.7 && < 5
+  - base >= 4.7 && < 5
 
 library:
   source-dirs: src
 
 tests:
   plzwrk-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - plzwrk
+      - plzwrk

@@ -1,6 +1,6 @@
-module Web.Framework.Plzwrk.TH.QuoteHSX
-  ( hsx
-  , hsx'
+module Web.Framework.Plzwrk.TH.QuotePWX
+  ( pwx
+  , pwx'
   , plusplus
   )
 where
@@ -11,21 +11,21 @@ import qualified Language.Haskell.TH           as TH
 import           Language.Haskell.Meta.Parse    ( parseExp )
 import           Language.Haskell.TH.Quote
 import           Language.Haskell.TH.Syntax
-import           Web.Framework.Plzwrk.TH.HSX
+import           Web.Framework.Plzwrk.TH.PWX
 import           Web.Framework.Plzwrk.Base
 import qualified Data.HashMap.Strict           as HM
 import qualified Data.Set                      as S
 
 
-hsx :: QuasiQuoter
-hsx = QuasiQuoter { quoteExp  = quoteExprExp True
+pwx :: QuasiQuoter
+pwx = QuasiQuoter { quoteExp  = quoteExprExp True
                   , quotePat  = undefined
                   , quoteDec  = undefined
                   , quoteType = undefined
                   }
 
-hsx' :: QuasiQuoter
-hsx' = QuasiQuoter { quoteExp  = quoteExprExp False
+pwx' :: QuasiQuoter
+pwx' = QuasiQuoter { quoteExp  = quoteExprExp False
                    , quotePat  = undefined
                    , quoteDec  = undefined
                    , quoteType = undefined
@@ -42,19 +42,19 @@ haskize y = either
 plusplus :: [a] -> [a] -> [a]
 plusplus = (++)
 
-hsxAttributeToExpQ :: (String, HSXAttribute) -> TH.Q TH.Exp
-hsxAttributeToExpQ (k, HSXStringAttribute v) = TH.tupE
+pwxAttributeToExpQ :: (String, PWXAttribute) -> TH.Q TH.Exp
+pwxAttributeToExpQ (k, PWXStringAttribute v) = TH.tupE
   [ TH.litE (TH.StringL k)
   , TH.lamE
     [TH.varP (TH.mkName "_")]
     (TH.appE (TH.conE (TH.mkName "PwTextAttribute")) (TH.litE (TH.StringL v)))
   ]
-hsxAttributeToExpQ (k, HSXHaskellCodeAttribute v) = TH.tupE
+pwxAttributeToExpQ (k, PWXHaskellCodeAttribute v) = TH.tupE
   [ TH.litE (TH.StringL k)
   , TH.lamE [TH.varP (TH.mkName "_")]
             (TH.appE (TH.conE (TH.mkName "PwFunctionAttribute")) (haskize v))
   ]
-hsxAttributeToExpQ (k, HSXHaskellTxtAttribute v) = TH.tupE
+pwxAttributeToExpQ (k, PWXHaskellTxtAttribute v) = TH.tupE
   [ TH.litE (TH.StringL k)
   , TH.lamE [TH.varP (TH.mkName "_")]
             (TH.appE (TH.conE (TH.mkName "PwTextAttribute")) (haskize v))
@@ -68,39 +68,39 @@ wrapInLambda False e = e
 asList :: Bool -> TH.Q TH.Exp -> TH.Q TH.Exp
 asList b e = if b then TH.listE [e] else e
 
-hsxToExpQ :: Bool -> Bool -> HSX -> TH.Q TH.Exp
-hsxToExpQ lam returnAsList (HSXHaskellCode y) = asList returnAsList (haskize y)
-hsxToExpQ lam returnAsList (HSXHaskellCodeList y) = haskize y
-hsxToExpQ lam returnAsList (HSXHaskellText y) = asList
+pwxToExpQ :: Bool -> Bool -> PWX -> TH.Q TH.Exp
+pwxToExpQ lam returnAsList (PWXHaskellCode y) = asList returnAsList (haskize y)
+pwxToExpQ lam returnAsList (PWXHaskellCodeList y) = haskize y
+pwxToExpQ lam returnAsList (PWXHaskellText y) = asList
   returnAsList
   (wrapInLambda True $ TH.appE (TH.conE (TH.mkName "PwTextNode")) (haskize y))
-hsxToExpQ lam returnAsList (HSXElement tag attrs elts) = asList
+pwxToExpQ lam returnAsList (PWXElement tag attrs elts) = asList
   returnAsList
   (wrapInLambda lam $ foldl
     TH.appE
     (TH.conE (TH.mkName "PwElement"))
     [ TH.litE (TH.StringL tag)
-    , TH.listE (fmap hsxAttributeToExpQ attrs)
+    , TH.listE (fmap pwxAttributeToExpQ attrs)
     , foldl
       TH.appE
       (TH.varE (TH.mkName "foldr"))
       [ TH.varE (TH.mkName "plusplus")
       , TH.conE (TH.mkName "[]")
-      , TH.listE (fmap (hsxToExpQ True True) elts)
+      , TH.listE (fmap (pwxToExpQ True True) elts)
       ]
     ]
   )
-hsxToExpQ lam returnAsList (HSXSelfClosingTag tag attrs) = asList
+pwxToExpQ lam returnAsList (PWXSelfClosingTag tag attrs) = asList
   returnAsList
   (wrapInLambda lam $ foldl
     TH.appE
     (TH.conE (TH.mkName "PwElement"))
     [ TH.litE (TH.StringL tag)
-    , TH.listE (fmap hsxAttributeToExpQ attrs)
+    , TH.listE (fmap pwxAttributeToExpQ attrs)
     , TH.conE (TH.mkName "[]")
     ]
   )
-hsxToExpQ lam returnAsList (HSXBody b) = asList
+pwxToExpQ lam returnAsList (PWXBody b) = asList
   returnAsList
   ( wrapInLambda lam
   $ TH.appE (TH.conE (TH.mkName "PwTextNode")) (TH.litE (TH.StringL b))
@@ -108,8 +108,8 @@ hsxToExpQ lam returnAsList (HSXBody b) = asList
 
 quoteExprExp b s = do
   pos    <- getPosition
-  result <- parseHSX pos s
-  hsxToExpQ b False result
+  result <- parsePWX pos s
+  pwxToExpQ b False result
 
 getPosition = fmap transPos TH.location where
   transPos loc =

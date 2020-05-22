@@ -108,7 +108,7 @@ hsxToExpQ lam returnAsList (HSXBody b) = asList
   $ TH.appE (TH.conE (TH.mkName "PwTextNode")) (TH.litE (TH.StringL b))
   )
 
-instance MonadLogger TH.Q where monadLoggerLog _ _ _ = return $ TH.reportWarning "Using monad logger"
+instance MonadLogger TH.Q where monadLoggerLog _ _ _ = return $ return ()
 instance MonadLoggerIO TH.Q where askLoggerIO = return (\_ _ _ _ -> return ())
 
 quoteExprExp :: Bool -> String -> TH.Q TH.Exp

@@ -26,6 +26,10 @@ module Web.Framework.Plzwrk
   , hsx
   , hsx'
   , plusplus
+  , parseHSX
+  , parseHSX_
+  , HSX(..)
+  , HSXAttribute(..)
   -- util
   , pF
   , pT
@@ -57,4 +61,5 @@ import           Web.Framework.Plzwrk.Base
 import           Web.Framework.Plzwrk.JSEnv
 import           Web.Framework.Plzwrk.Domify
 import           Web.Framework.Plzwrk.Util
+import           Web.Framework.Plzwrk.TH.HSX
 import           Web.Framework.Plzwrk.TH.QuoteHSX
